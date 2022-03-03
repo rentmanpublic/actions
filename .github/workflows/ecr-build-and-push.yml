@@ -84,14 +84,14 @@ jobs:
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
           for platform in ${{inputs.platforms}}; do 
-            if [[ ${{inputs.dockerfile_context}} == "" ]]; then
+            if [[ -z "${{inputs.dockerfile_context}}" ]]; then
               dockerfile_context="$GITHUB_WORKSPACE"
             else
               dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
             fi;
             echo "Context folder: ${dockerfile_context}"
           
-            if [[ ${{inputs.push_images}} == "1" ]]; then
+            if [[ "${{inputs.push_images}}" == "1" ]]; then
               echo "Building (push_images=1) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
               if [[ ${{inputs.platform_default}} != ${platform} ]]; then
                docker buildx build --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
