@@ -10,7 +10,6 @@ on:
        build_reporting_secret:
          description: The secret used for the toolsendpoint to register QA builds
          required: true
-         type: string
 jobs:
   qa-build-register-start:
     runs-on: ubuntu-latest
@@ -20,6 +19,7 @@ jobs:
           GITHUB_ACTION_PAYLOAD: ${{inputs.github_action_payload}}
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
         run: |
-          apt-get update && apt-get install -y jq
-          POST_DATA=$(echo "${GITHUB_ACTION_PAYLOAD}" | jq ".secret=\""${BUILD_REPORTING_SECRET}"\"")
-          curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=register" -H 'Content-Type: application/json' -d "${POST_DATA}"   
+          echo "$GITHUB_ACTION_PAYLOAD" > payload.json
+          jq ".secret=\"${BUILD_REPORTING_SECRET}\"" payload.json > processed.json
+          curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=register" -H 'Content-Type: application/json' --data-binary "@processed.json"
+          
