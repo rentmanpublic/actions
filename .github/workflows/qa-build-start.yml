@@ -6,6 +6,11 @@ on:
          required: true
          description: The github action payload
          type: string
+      stage:
+        required: true
+        default: register
+        type: string
+        description: one of [register, built, failed]
     secrets:
        build_reporting_secret:
          description: The secret used for the toolsendpoint to register QA builds
@@ -18,7 +23,12 @@ jobs:
         env:
           GITHUB_ACTION_PAYLOAD: ${{inputs.github_action_payload}}
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
+          STAGE: ${{inputs.stage}}
         run: |
+          if [[ "$STAGE" != @(building|built|failed) ]]; then
+            echo "Invalid build stage"
+            exit 1
+          fi
           echo "$GITHUB_ACTION_PAYLOAD" > payload.json
           jq ".secret=\"${BUILD_REPORTING_SECRET}\"" payload.json > processed.json
           curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=register" -H 'Content-Type: application/json' --data-binary "@processed.json"
@@ -28,5 +38,4 @@ jobs:
           else
              sha="$(jq -r '.sha' processed.json)"
           fi
-          echo $sha
           echo "::set-output name=sha::$sha"
