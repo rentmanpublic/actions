@@ -31,7 +31,7 @@ jobs:
           fi
           echo "$GITHUB_ACTION_PAYLOAD" > payload.json
           jq ".secret=\"${BUILD_REPORTING_SECRET}\"" payload.json > processed.json
-          curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=register" -H 'Content-Type: application/json' --data-binary "@processed.json"
+          curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=$STAGE" -H 'Content-Type: application/json' --data-binary "@processed.json"
           event_type="$(jq -r '.event_name' processed.json)"
           if [ "$event_type" = "pull_request" ]; then
              sha="$(jq -r '.event.pull_request.head.sha' processed.json)"
