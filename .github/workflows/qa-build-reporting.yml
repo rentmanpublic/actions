@@ -18,8 +18,11 @@ on:
 jobs:
   qa-build-register-start:
     runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.register.outputs.sha }}
     steps:
       - name: Register the stage of the builds
+        id: register
         env:
           GITHUB_ACTION_PAYLOAD: ${{inputs.github_action_payload}}
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
