@@ -1,4 +1,4 @@
-name: Register the start of a QA build
+name: Register the stages of a QA build
 on:
   workflow_call:
     inputs:
@@ -8,9 +8,9 @@ on:
          type: string
       stage:
         required: true
-        default: register
+        default: building
         type: string
-        description: one of [register, built, failed]
+        description: one of [building, built, failed]
     secrets:
        build_reporting_secret:
          description: The secret used for the toolsendpoint to register QA builds
@@ -19,7 +19,7 @@ jobs:
   qa-build-register-start:
     runs-on: ubuntu-latest
     steps:
-      - name: Register the start of build on the magic machine
+      - name: Register the stage of the builds
         env:
           GITHUB_ACTION_PAYLOAD: ${{inputs.github_action_payload}}
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
