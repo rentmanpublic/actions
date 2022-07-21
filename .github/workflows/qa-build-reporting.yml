@@ -15,8 +15,12 @@ on:
        build_reporting_secret:
          description: The secret used for the toolsendpoint to register QA builds
          required: true
+
+
 jobs:
+
   qa-build-register-start:
+
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.register.outputs.sha }}
@@ -41,4 +45,6 @@ jobs:
           else
              sha="$(jq -r '.sha' processed.json)"
           fi
-          echo "::set-output name=sha::$sha"
+          echo "Storing SHA as output: ${sha}"
+          echo "::set-output name=sha::$(echo $sha)"
+        
