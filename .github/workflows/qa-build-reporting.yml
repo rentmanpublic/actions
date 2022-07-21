@@ -2,7 +2,7 @@ name: Register the stages of a QA build
 on:
   workflow_call:
     outputs:
-      sha: ${{jobs.qa-build-register-start.outputs.sha}}
+      sha: ${{jobs.qa-build-register-status.outputs.sha}}
     inputs:
       github_action_payload:
          required: true
@@ -20,7 +20,7 @@ on:
 
 jobs:
 
-  qa-build-register-start:
+  qa-build-register-status:
     runs-on: ubuntu-latest
     outputs:
       sha: ${{steps.register.outputs.sha}}
