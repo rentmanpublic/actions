@@ -45,7 +45,9 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access ket secret
-
+      COMPOSER_AUTH:
+        required: false
+        description: The token to authenticate on github
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -91,15 +93,15 @@ jobs:
               dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
             fi;
             echo "Context folder: ${dockerfile_context}"
-          
+            echo "Composer key used: ${COMPOSER_AUTH}"
             if [[ "${{inputs.push_images}}" == "1" ]]; then
-              echo "Building (push_images=1) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
+              echo "Building (push_images=1) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --build-arg COMPOSER_AUTH --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
               if [[ ${{inputs.platform_default}} != ${platform} ]]; then
                docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
               else
                 docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform}  -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
               fi;
             else
-              echo "Test run (push_images=0) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
+              echo "Test run (push_images=0) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --build-arg COMPOSER_AUTH --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
             fi;
           done
