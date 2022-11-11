@@ -81,6 +81,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ inputs.image_name }}
           IMAGE_TAG: ${{ inputs.image_tag }}
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
           for platform in ${{inputs.platforms}}; do 
@@ -94,9 +95,9 @@ jobs:
             if [[ "${{inputs.push_images}}" == "1" ]]; then
               echo "Building (push_images=1) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
               if [[ ${{inputs.platform_default}} != ${platform} ]]; then
-               docker buildx build --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
+               docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
               else
-                docker buildx build --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform}  -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
+                docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform}  -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
               fi;
             else
               echo "Test run (push_images=0) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
