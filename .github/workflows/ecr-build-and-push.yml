@@ -36,8 +36,11 @@ on:
         description: When this is set to 0, images will not be pushed only a test run is done
         type: string
         default: 1
-
-
+      pull_first:
+        description: Docker images you need to pull first
+        type: string
+        default:
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -86,6 +89,18 @@ jobs:
           COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
+          
+          if [[ -n "${{inputs.pull_first}}" ]]; then
+            echo 1;
+            for image in "${{inputs.pull_first}}"; do
+                docker pull "${ECR_REGISTRY}/${image}"
+                docker tag "${ECR_REGISTRY}/${image}" "${image}"
+                echo "${ECR_REGISTRY}/${image}"
+                echo "${ECR_REGISTRY}/${image} ${image}"
+            done;
+          fi
+          
+          
           for platform in ${{inputs.platforms}}; do 
             if [[ -z "${{inputs.dockerfile_context}}" ]]; then
               dockerfile_context="$GITHUB_WORKSPACE"
