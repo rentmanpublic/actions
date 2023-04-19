@@ -112,19 +112,33 @@ jobs:
               dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
             fi;
           
+            tags_space_separated=""
+            tags_command=""
+            for tag in ${IMAGE_TAG}
+            do
+              tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform}"
+              tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}-${platform}"
+            
+              if [[ ${{inputs.platform_default}} = ${platform} ]]; then
+                tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}"
+                tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}"
+              fi;
+            done
+          
             # Construct command
             if [[ ${{inputs.platform_default}} != ${platform} ]]; then
               command="docker buildx build --build-arg COMPOSER_AUTH --push -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
             else
-              command="docker buildx build --build-arg COMPOSER_AUTH --push -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}-${platform}  -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+              command="docker buildx build --build-arg COMPOSER_AUTH --push -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
             fi;
             
             # Output what the plan is
             echo 
             echo "## Build ${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} ##"
-            echo "Platform: linux/${platform}"
+            echo "Tags: ${tags_space_separated}"
             echo "Dockerfile: ${{inputs.dockerfile}}"
             echo "Context ${dockerfile_context}"
+            echo "Platform: linux/${platform}"
             if [[ ${{inputs.platform_default}} != ${platform} ]]; then
               echo "Is default platform: "No";
             else
