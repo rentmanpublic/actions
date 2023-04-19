@@ -90,8 +90,9 @@ jobs:
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
           
+          # Pull required images
           if [[ -n "${{inputs.pull_first}}" ]]; then
-            echo 1;
+            echo "Pulling required images"
             for image in "${{inputs.pull_first}}"; do
                 docker pull "${ECR_REGISTRY}/${image}"
                 docker tag "${ECR_REGISTRY}/${image}" "${image}"
@@ -101,22 +102,42 @@ jobs:
           fi
           
           
+          # Loop over all platforms
           for platform in ${{inputs.platforms}}; do 
+          
+            # Find full path to docker context
             if [[ -z "${{inputs.dockerfile_context}}" ]]; then
               dockerfile_context="$GITHUB_WORKSPACE"
             else
               dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
             fi;
-            echo "Context folder: ${dockerfile_context}"
-            echo "Composer key used: ${COMPOSER_AUTH}"
-            if [[ "${{inputs.push_images}}" == "1" ]]; then
-              echo "Building (push_images=1) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --build-arg COMPOSER_AUTH --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
-              if [[ ${{inputs.platform_default}} != ${platform} ]]; then
-               docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
-              else
-                docker buildx build --build-arg COMPOSER_AUTH --push -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform}  -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG --platform "linux/${platform}" -f "$GITHUB_WORKSPACE/${{inputs.dockerfile}}" "${dockerfile_context}"
-              fi;
+          
+            # Construct command
+            if [[ ${{inputs.platform_default}} != ${platform} ]]; then
+              command="docker buildx build --build-arg COMPOSER_AUTH --push -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
             else
-              echo "Test run (push_images=0) $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG-${platform} --build-arg COMPOSER_AUTH --platform linux/${platform} -f $GITHUB_WORKSPACE/${{inputs.dockerfile}} ${dockerfile_context}"
+              command="docker buildx build --build-arg COMPOSER_AUTH --push -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}-${platform}  -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
             fi;
+            
+            # Output what the plan is
+            echo 
+            echo "## Build ${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} ##"
+            echo "Platform: linux/${platform}"
+            echo "Dockerfile: ${{inputs.dockerfile}}"
+            echo "Context ${dockerfile_context}"
+            if [[ ${{inputs.platform_default}} != ${platform} ]]; then
+              echo "Is default platform: "No";
+            else
+              echo "Is default platform: "Yes";
+            fi;
+          
+            if [[ "${{inputs.push_images}}" == "1" ]]; then
+              # Build
+              echo "Dry run: No";
+              echo "Running ${command}";
+              ${command};
+            else
+              echo "Dry run: Yes";
+              echo "Command ${command}";
+            fi
           done
