@@ -61,17 +61,17 @@ jobs:
         run: git config --global core.autocrlf input
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       # Setup QEMO
       - name: Set up QEMU, required for buildx
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       # Setup docker buildx
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       # Login to AWS
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -92,33 +92,40 @@ jobs:
           
           # Pull required images
           if [[ -n "${{inputs.pull_first}}" ]]; then
-            echo "Pulling required images"
+            echo 
+            echo "## Pulling required images ##"
             for image in "${{inputs.pull_first}}"; do
+                echo "Pull ${ECR_REGISTRY}/${image}}"
                 docker pull "${ECR_REGISTRY}/${image}"
+                echo "Tag ${ECR_REGISTRY}/${image} as ${image}"
                 docker tag "${ECR_REGISTRY}/${image}" "${image}"
-                echo "${ECR_REGISTRY}/${image}"
-                echo "${ECR_REGISTRY}/${image} ${image}"
             done;
           fi
           
+          # Find full path to docker context
+          if [[ -z "${{inputs.dockerfile_context}}" ]]; then
+            dockerfile_context="$GITHUB_WORKSPACE"
+          else
+            dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
+          fi;
           
           # Loop over all platforms
           for platform in ${{inputs.platforms}}; do 
-          
-            # Find full path to docker context
-            if [[ -z "${{inputs.dockerfile_context}}" ]]; then
-              dockerfile_context="$GITHUB_WORKSPACE"
-            else
-              dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
-            fi;
-          
+            
+            # Create all tags
             tags_space_separated=""
             tags_command=""
+          
+            # Tags passed and one added with the timestamp
             for tag in ${IMAGE_TAG} $(date "+%Y%m%d.%H%M%S")
             do
+              # In the commmand
               tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform}"
+          
+              # Readable output
               tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}-${platform}"
             
+              # For the defalt platform, also tag it without th -${platform} suffix
               if [[ "${{inputs.platform_default}}" = "${platform}" ]]; then
                 tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}"
                 tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}"

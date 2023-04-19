@@ -1,0 +1,11 @@
+*.deb binary
+*.ttf binary
+* text=auto
+*.sh eol=lf
+*.env eol=lf
+*.ini eol=lf
+*.yml eol=lf
+Dockerfile eol=lf
+
+app/include/vendor/** linguist-generated=true
+
