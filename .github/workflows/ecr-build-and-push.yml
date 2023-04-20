@@ -109,6 +109,7 @@ jobs:
             dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
           fi;
           
+          date_tag="$(date "+%Y%m%d.%H%M%S")"
           # Loop over all platforms
           for platform in ${{inputs.platforms}}; do 
             
@@ -117,7 +118,7 @@ jobs:
             tags_command=""
           
             # Tags passed and one added with the timestamp
-            for tag in ${IMAGE_TAG} $(date "+%Y%m%d.%H%M%S")
+            for tag in ${IMAGE_TAG} ${date_tag}
             do
               # In the commmand
               tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform}"
