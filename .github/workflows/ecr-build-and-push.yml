@@ -94,11 +94,13 @@ jobs:
           if [[ -n "${{inputs.pull_first}}" ]]; then
             echo 
             echo "## Pulling required images ##"
-            for image in "${{inputs.pull_first}}"; do
-                echo "Pull ${ECR_REGISTRY}/${image}}"
-                docker pull "${ECR_REGISTRY}/${image}"
-                echo "Tag ${ECR_REGISTRY}/${image} as ${image}"
-                docker tag "${ECR_REGISTRY}/${image}" "${image}"
+            for platform in ${{inputs.platforms}}; do 
+              for image in "${{inputs.pull_first}}"; do
+                  echo "Pull ${ECR_REGISTRY}/${image}}"
+                  docker pull --platform "linux/${platform}" "${ECR_REGISTRY}/${image}"
+                  echo "Tag ${ECR_REGISTRY}/${image} --platform "linux/${platform}" as ${image}"
+                  docker tag "${ECR_REGISTRY}/${image}" "${image}"
+              done;
             done;
             echo "List docker images:"
             docker images
