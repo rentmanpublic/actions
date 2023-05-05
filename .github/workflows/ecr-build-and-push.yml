@@ -100,6 +100,9 @@ jobs:
                 echo "Tag ${ECR_REGISTRY}/${image} as ${image}"
                 docker tag "${ECR_REGISTRY}/${image}" "${image}"
             done;
+            echo "List docker images:"
+            docker images
+            echo 
           fi
           
           # Find full path to docker context
