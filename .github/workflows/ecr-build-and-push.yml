@@ -107,6 +107,11 @@ jobs:
             echo 
           fi
           
+          echo
+          echo "List docker buildx environment"
+          docker buildx ls
+          echo 
+          
           # Find full path to docker context
           if [[ -z "${{inputs.dockerfile_context}}" ]]; then
             dockerfile_context="$GITHUB_WORKSPACE"
