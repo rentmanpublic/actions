@@ -110,7 +110,7 @@ jobs:
           echo
           echo "List docker buildx environment"
           docker buildx ls
-          echo 
+          docker buildx use default
           
           # Find full path to docker context
           if [[ -z "${{inputs.dockerfile_context}}" ]]; then
