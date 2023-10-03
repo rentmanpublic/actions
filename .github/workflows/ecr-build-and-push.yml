@@ -128,13 +128,13 @@ jobs:
             tags_command=""
           
             # Tags passed and one added with the timestamp
-            for tag in ${IMAGE_TAG} ${date_tag}
+            for tag in ${IMAGE_TAG}
             do
               # In the commmand
-              tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform}"
+              tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${date_tag}-${tag}-${platform}"
           
               # Readable output
-              tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}-${platform}"
+              tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}-${platform} ${ECR_REPOSITORY}:${date_tag}-${tag}-${platform}"
             
               # For the defalt platform, also tag it without th -${platform} suffix
               if [[ "${{inputs.platform_default}}" = "${platform}" ]]; then
