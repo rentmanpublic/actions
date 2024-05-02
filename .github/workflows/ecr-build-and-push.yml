@@ -41,6 +41,11 @@ on:
         type: string
         default:
         required: false
+      ref:
+        description: hash of the commit to be checked out, in case you want to use a commit different from the one which triggered the workflow
+        type: string
+        default: ''
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -62,6 +67,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout the repository
         uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.ref }}
       # Setup QEMO
       - name: Set up QEMU, required for buildx
         uses: docker/setup-qemu-action@v3
