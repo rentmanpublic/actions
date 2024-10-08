@@ -46,6 +46,11 @@ on:
         type: string
         default: ''
         required: false
+      build_args:
+        description: build argument key-value pairs seperated by space (ex "key1=value1 key2=value2 key3=value3")
+        type: string
+        default: ''
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -61,6 +66,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Prepare a string in "--build-arg key1=val1 --build-arg key2=val2..." format using build_args input"
+      - name: Prepare build arguments
+        run: |
+          if [ '${{ inputs.build_args }}' != '' ]; then
+            input_build_args=$(echo ${{ inputs.build_args }} | sed 's/\([^ ]*\)/--build-arg \1/g')
+          else
+            input_build_args=''
+          fi
+          echo "input_build_args=$input_build_args" >> "$GITHUB_ENV"
       # Get rid of windows line ends
       - name: Configure git to clear carriage returns
         run: git config --global core.autocrlf input
@@ -151,7 +165,7 @@ jobs:
             done
           
             # Construct command
-            command="docker buildx build --build-arg COMPOSER_AUTH --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+            command="docker buildx build --build-arg COMPOSER_AUTH ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
             # Output what the plan is
             echo 
