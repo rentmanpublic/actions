@@ -14,6 +14,11 @@ on:
         description: 'AWS region'
         type: 'string'
         required: true
+      revision:
+        description: 'ECS task revision given as family:revision'
+        type: 'string'
+        default: ''
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -33,4 +38,4 @@ jobs:
               aws-region: ${{ inputs.region }}
           - name: Redeploy ECS service
             run: |
-              aws ecs update-service --cluster ${{ inputs.cluster }} --service ${{ inputs.service }} --region ${{ inputs.region }} --force-new-deployment
+              aws ecs update-service --cluster ${{ inputs.cluster }} --service ${{ inputs.service }} --region ${{ inputs.region }} --task-definition ${{ inputs.revision }} --force-new-deployment
