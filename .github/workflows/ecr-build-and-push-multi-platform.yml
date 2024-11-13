@@ -132,7 +132,7 @@ jobs:
           done
         
           # Construct command
-          command="docker buildx build --build-arg COMPOSER_AUTH --push ${tags_command} --platform "${platform_string}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+          command="docker buildx build --build-arg COMPOSER_AUTH --push ${tags_command} --platform "${{inputs.platform_string}}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
           # Output what the plan is
           echo 
@@ -140,7 +140,7 @@ jobs:
           echo "Tags: ${tags_space_separated}"
           echo "Dockerfile: ${{inputs.dockerfile}}"
           echo "Context ${dockerfile_context}"
-          echo "Platforms: ${platform_string}"
+          echo "Platforms: ${{inputs.platform_string}}"
         
           if [[ "${{inputs.push_images}}" == "1" ]]; then
             # Build
