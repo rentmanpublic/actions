@@ -20,7 +20,7 @@ on:
         description: Context to build the docker image. By default this is the root of the repo (empty string). No trailing or leading slash should be added
         type: string
         default: ""
-      platforms:
+      platform_string:
         description: Comma separated list of platforms, for example linux/amd64,linux/arm64 or linux/amd64, or linux/arm64
         type: string
         default: linux/amd64,linux/arm64
@@ -84,7 +84,7 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: |
-          echo "This step will build a multi platform image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
+          echo "This step will build a multi platform image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platform_string}}"
           
           # Pull required images
           if [[ -n "${{inputs.pull_first}}" ]]; then
@@ -132,7 +132,7 @@ jobs:
           done
         
           # Construct command
-          command="docker buildx build --build-arg COMPOSER_AUTH --push ${tags_command} --platform "${platforms}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+          command="docker buildx build --build-arg COMPOSER_AUTH --push ${tags_command} --platform "${platform_string}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
           # Output what the plan is
           echo 
@@ -140,7 +140,7 @@ jobs:
           echo "Tags: ${tags_space_separated}"
           echo "Dockerfile: ${{inputs.dockerfile}}"
           echo "Context ${dockerfile_context}"
-          echo "Platforms: ${platforms}"
+          echo "Platforms: ${platform_string}"
         
           if [[ "${{inputs.push_images}}" == "1" ]]; then
             # Build
