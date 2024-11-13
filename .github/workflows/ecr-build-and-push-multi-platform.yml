@@ -94,6 +94,10 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
         run: |
+          
+          echo "Use default docker context"
+          docker context use default
+          
           echo "This step will build a multi platform image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platform_string}}"
           
           # Pull required images
