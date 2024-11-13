@@ -58,6 +58,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout the repository
         uses: actions/checkout@v3
+      - name: Set up Docker
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
       # Setup QEMO
       - name: Set up QEMU, required for buildx
         uses: docker/setup-qemu-action@v3
