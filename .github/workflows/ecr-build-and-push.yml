@@ -169,7 +169,7 @@ jobs:
             done
           
             # Construct command
-            command="docker buildx build --build-arg COMPOSER_AUTH SENTRY_AUTH_TOKEN ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+            command="docker buildx build --build-arg COMPOSER_AUTH --build-arg SENTRY_AUTH_TOKEN ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
             # Output what the plan is
             echo 
