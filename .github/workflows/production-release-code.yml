@@ -81,8 +81,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Push new tag to github
-        run: | 
-          ./scripts/update_version.sh 
+        run: |
+          rentmanpublic/actions./scripts/update_version.sh@master
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
           git add ${{ inputs.version_file_path }} 
@@ -98,7 +98,7 @@ jobs:
   docker-build:
     name: Build Production image
     needs: [tag,  push-new-tag]
-    uses: ./.github/workflows/ecr-build-and-push.yml
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ inputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
@@ -113,7 +113,7 @@ jobs:
   deploy-production:
       name: Deploy to Production
       needs: docker-build
-      uses: ./.github/workflows/ecs-redeploy-service.yml
+      uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
       with:
         service: ${{ inputs.ecs_service }}
         cluster: ${{ inputs.ecs_cluster }}
