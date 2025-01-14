@@ -5,9 +5,10 @@ if [[ -z "$GIT_TAG" ]]; then
     exit 1;
 fi
 
+echo $(pwd)
+ls
 # Add .php extension to the filename
 file= "$VERSION_FILE_PATH"
-echo $(pwd)
 
 # Write content to the file
 echo "<?php" > "$file"
