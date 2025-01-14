@@ -11,7 +11,7 @@ file="$VERSION_FILE_PATH"
 
 echo 'Starting'
 if [ -f $file ]; then
-  chmod 777 $file
+  chmod 700 $file
 else
   echo "File does not exist:"
   ls -l
