@@ -7,7 +7,7 @@ on:
         description: The path to the php version file
         type: string
         required: false
-        default: translations/app/version.php
+        default: ./translations/app/version.php
       image_name:
         description: The name the docker image. This is also the name of the ECR repository
         type: string
