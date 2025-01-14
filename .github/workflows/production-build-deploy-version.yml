@@ -3,6 +3,10 @@ name: Build and Deploy Specific Version To Production
 on:
   workflow_call:
     inputs:
+      deploy_confirmation:
+        description: 'Outcome if user manually confirmed the start of the deploy script'
+        type: string
+        required: true
       target_version:
         description: 'The version of that needs to be deployed'
         required: true
@@ -56,6 +60,7 @@ concurrency:
 jobs:
   ensure-master-branch:
     name: Check current branch
+    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     outputs:
       status: ${{ steps.early.outputs.status }}
     runs-on: ubuntu-latest

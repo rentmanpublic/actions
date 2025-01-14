@@ -3,6 +3,10 @@ name: Build, Tag and Release Master To Production
 on:
   workflow_call:
     inputs:
+      deploy_confirmation:
+        description: 'Outcome if user manually confirmed the start of the deploy script'
+        type: string
+        required: true
       version_bump:
         description: 'Choose version bump granularity'
         required: true
@@ -57,6 +61,7 @@ concurrency:
 jobs:
   ensure-master-branch:
     name: Check current branch
+    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     outputs:
       status: ${{ steps.early.outputs.status }}
     runs-on: ubuntu-latest
