@@ -25,6 +25,12 @@ jobs:
   redeploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -33,8 +39,8 @@ jobs:
           aws-region: ${{ inputs.region }}
       - name: parse cluster input
         run: |
-          chmod 700 /scripts/parse_cluster.sh
-          scripts/parse_cluster.sh
+          chmod 700 actions/scripts/parse_cluster.sh
+          actions/scripts/parse_cluster.sh
         env:
           CLUSTER_NAME: ${{ inputs.cluster }}
           REGION: ${{ inputs.region }}
