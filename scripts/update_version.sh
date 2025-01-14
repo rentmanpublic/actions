@@ -1,18 +1,21 @@
 #!/bin/bash
 
+
 if [[ -z "$GIT_TAG" ]]; then
     echo "No tag provided"
     exit 1;
 fi
 
 # Add .php extension to the filename
-file= "$VERSION_FILE_PATH"
+file="$VERSION_FILE_PATH"
 
-ls
-echo "./translations -------------------------------"
-ls ./translations
-echo "translations/app ------------------------------"
-ls translations/app
+echo 'Starting'
+if [ -f $file ]; then
+  chmod 777 $file
+else
+  echo "File does not exist:"
+  ls -l
+fi
 
 # Write content to the file
 echo "<?php" > "$file"
