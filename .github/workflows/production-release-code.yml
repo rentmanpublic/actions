@@ -7,11 +7,6 @@ on:
         description: 'Choose version bump granularity'
         required: true
         default: 'minor'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
       version_file_path:
         description: The path to the php version file
         type: string
