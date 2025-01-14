@@ -3,6 +3,15 @@ name: Production Release Code
 on:
   workflow_call:
     inputs:
+      version_bump:
+        description: 'Choose version bump granularity'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
       version_file_path:
         description: The path to the php version file
         type: string
@@ -22,21 +31,22 @@ on:
         type: string
         required: true
       dockerfile:
-        description: Relative dockerfile to the docker file seen from the repository root. No leading slahs.
+        description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
         required: true
       ecs_service:
         description: 'ECS service name'
-        type: 'string'
+        type: string
         required: true
       ecs_cluster:
         description: 'ECS cluster name'
-        type: 'string'
+        type: string
         required: true
       ecs_region:
         description: 'AWS region'
-        type: 'string'
+        type: string
         required: true
+
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -81,7 +91,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: ''
-          default_bump: minor
+          default_bump: ${{ inputs.version_bump }}
           dry_run: true
 
   push-new-tag:
@@ -92,9 +102,9 @@ jobs:
       - name: Checkout actions repository
         uses: actions/checkout@v4
         with:
-          repository: rentmanpublic/actions # Replace with the target repository
+          repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: actions  # Directory where the other repo will be checked out
+          path: actions
       - name: Checkout translations repo
         uses: actions/checkout@v4
         with:
