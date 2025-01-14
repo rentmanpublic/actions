@@ -1,0 +1,40 @@
+name: Redeploy Latest Version in AWS on Production Without Building
+
+on:
+  workflow_call:
+    inputs:
+      ecs_service:
+        description: 'ECS service name'
+        type: string
+        required: true
+      ecs_cluster:
+        description: 'ECS cluster name'
+        type: string
+        required: true
+      ecs_region:
+        description: 'AWS region'
+        type: string
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+        description: AWS access key id
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+        description: AWS access key secret
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-production:
+      name: Redeploy latest image available on ECR on Production
+      uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+      with:
+        service: ${{ inputs.ecs_service }}
+        cluster: ${{ inputs.ecs_cluster }}
+        region:  ${{ inputs.ecs_region }}
+      secrets:
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
