@@ -1,0 +1,41 @@
+name: Redeploy ECS service
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: 'ECS service name'
+        type: 'string'
+        required: true
+      cluster:
+        description: 'ECS cluster name'
+        type: 'string'
+        required: true
+      region:
+        description: 'AWS region'
+        type: 'string'
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+        description: AWS access key id
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+        description: AWS access key secret
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+      - name: parse cluster inputs
+        run: |
+          aws resourcegroupstaggingapi get-resources \
+            --region ${{ inputs.region }} \
+            --resource-type-filters ecs:cluster \
+            --tag-filters Key=ClusterName,Values=${{ inputs.cluster }} \
+            --query "ResourceTagMappingList[*].ResourceARN" \
+            --output text | awk -F'/' '{print $2}'
