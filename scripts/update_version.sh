@@ -5,8 +5,6 @@ if [[ -z "$GIT_TAG" ]]; then
     exit 1;
 fi
 
-echo ${OTHER_VERSION_FILE_PATH}
-ls ../
 # Add .php extension to the filename
 file= "$VERSION_FILE_PATH"
 
