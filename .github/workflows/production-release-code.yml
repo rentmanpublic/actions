@@ -82,7 +82,7 @@ jobs:
       - name: Checkout actions repository
         uses: actions/checkout@v4
         with:
-          repository: rentmanpublic/actions # Replace with the target repository
+          repository: rentmanpublic/actions@test/production-release-code # Replace with the target repository
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions  # Directory where the other repo will be checked out
       - name: Checkout translations repo
