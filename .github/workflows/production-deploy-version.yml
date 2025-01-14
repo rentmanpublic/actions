@@ -1,13 +1,12 @@
-name: Production Release Code
+name: Production Deploy Version
 
 on:
   workflow_call:
     inputs:
-      version_bump:
-        description: 'Choose version bump granularity'
+      target_version:
+        description: 'The version of that needs to be deployed'
         required: true
         type: string
-        default: 'minor'
       version_file_path:
         description: The path to the php version file
         type: string
@@ -55,42 +54,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ensure-master-branch:
-    name: Check current branch
-    outputs:
-      status: ${{ steps.early.outputs.status }}
-    runs-on: ubuntu-latest
-    steps:
-      - id: early
-        name: Checking if current branch is master
-        run: |
-          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            echo "Error this can only run on master branch"
-            exit 1
-          fi
-          echo "status=success" >> $GITHUB_OUTPUT
-
-  tag:
-    name: Generating new GitHub tag
-    needs: ensure-master-branch
-    if: needs.ensure-master-branch.outputs.status == 'success'
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Create new minor version tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ''
-          default_bump: ${{ inputs.version_bump }}
-          dry_run: true
-
-  push-new-tag:
-    name: Update version, tagging in GitHub
-    needs: tag
+  checkout-release-version:
+    name: Checking out the to be released version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout actions repository
@@ -102,30 +67,21 @@ jobs:
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
+          ref: 'refs/tags/${{ inputs.target_version }}'
           repository: ${{ inputs.target_repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
-      - name: Push new tag to github
-        run: |
-          chmod 700 actions/scripts/update_version.sh
-          actions/scripts/update_version.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_TAG: ${{ needs.tag.outputs.new_tag }}
-          TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
-          VERSION_FILE_PATH: ${{ inputs.version_file_path }}
-
   docker-build:
     name: Build Production image
-    needs: [tag,  push-new-tag]
+    needs: checkout-release-version
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ inputs.image_name }}
-      image_tag: latest ${{ needs.tag.outputs.new_tag }}
+      image_tag: latest ${{ inputs.target_version  }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
-      ref: ${{ needs.tag.outputs.new_tag }}
+      ref: ${{ inputs.target_version }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
