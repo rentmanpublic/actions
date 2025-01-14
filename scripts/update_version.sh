@@ -7,6 +7,7 @@ fi
 
 # Add .php extension to the filename
 file= "$VERSION_FILE_PATH"
+echo $(pwd)
 
 # Write content to the file
 echo "<?php" > "$file"
