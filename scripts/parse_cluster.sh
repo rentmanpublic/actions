@@ -29,8 +29,8 @@ OUTPUT=$(aws resourcegroupstaggingapi get-resources \
 
 # Handle case when no output is returned
 if [[ -z "$OUTPUT" ]]; then
-    echo "No clusters found with the tag: ClusterName=$TAG_NAME"
+    echo "No clusters found with the tag: ClusterName=$OUTPUT"
     exit 1
 fi
-echo "cluster_name=$TAG_NAME"
-echo "cluster_name=$TAG_NAME" >> $GITHUB_ENV
+echo "cluster_name=$OUTPUT"
+echo "cluster_name=$OUTPUT" >> $GITHUB_ENV
