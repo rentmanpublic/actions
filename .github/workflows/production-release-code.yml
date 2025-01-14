@@ -7,12 +7,12 @@ on:
         description: The path to the php version file
         type: string
         required: false
-        default: ./app/version.php
+        default: translations/app/version.php
       version_file_path:
         description: The path to the php version file
         type: string
         required: false
-        default: ./app/version.php
+        default: translations/app/version.php
       image_name:
         description: The name the docker image. This is also the name of the ECR repository
         type: string
@@ -90,6 +90,12 @@ jobs:
           repository: rentmanpublic/actions # Replace with the target repository
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions  # Directory where the other repo will be checked out
+      - name: Checkout translations repo
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/translations
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: translations
       - name: Push new tag to github
         run: |
           chmod +x actions/scripts/update_version.sh
