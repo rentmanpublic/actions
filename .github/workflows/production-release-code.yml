@@ -7,7 +7,7 @@ on:
         description: The path to the php version file
         type: string
         required: false
-        default: ./translations/app/version.php
+        default: translations/app/version.php
       image_name:
         description: The name the docker image. This is also the name of the ECR repository
         type: string
@@ -93,8 +93,8 @@ jobs:
           path: translations
       - name: Push new tag to github
         run: |
-          chmod 700 actions/scripts/update_version.sh
-          chmod 700 ${{ inputs.version_file_path }}
+          chmod 777 actions/scripts/update_version.sh
+          chmod 777 ${{ inputs.version_file_path }}
           actions/scripts/update_version.sh
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
