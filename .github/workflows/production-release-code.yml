@@ -99,7 +99,7 @@ jobs:
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
           ls
-          git add ${{ inputs.version_file_path }} 
+          git add ./app/version.php
           git commit -m "Bump version to ${{ needs.tag.outputs.new_tag }}"
           git tag ${{ needs.tag.outputs.new_tag }}
           git push
