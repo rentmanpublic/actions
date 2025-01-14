@@ -49,9 +49,6 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access key secret
-      GITHUB_TOKEN:
-        required: true
-        description: Github Auth Token
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
