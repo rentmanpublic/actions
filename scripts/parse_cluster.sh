@@ -1,10 +1,10 @@
-if [[ -z "$CLUSTER_NAME" ]]; then
+if [[ -z "$ENVIRONMENT_NAME" ]]; then
     echo "No environment provided"
     exit 1;
 fi
 
 # Map tag values to cluster names
-case "$CLUSTER_NAME" in
+case "$ENVIRONMENT_NAME" in
     "Production")
         TAG_NAME="MainCluster"
         ;;
@@ -15,7 +15,7 @@ case "$CLUSTER_NAME" in
         TAG_NAME="Util"
         ;;
     *)
-        echo "No tag defined for tag value: $CLUSTER_NAME"
+        echo "No tag defined for tag value: $ENVIRONMENT_NAME"
         exit 1
         ;;
 esac
