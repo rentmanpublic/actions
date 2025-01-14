@@ -12,6 +12,11 @@ on:
         description: The target repository for the build
         type: string
         required: true
+      target_repository_folder:
+        description: The folder in which the target repository will be checked out
+        type: string
+        required: false
+        default: target_repository_folder
       image_name:
         description: The name the docker image. This is also the name of the ECR repository
         type: string
@@ -32,6 +37,7 @@ on:
         description: 'AWS region'
         type: 'string'
         required: true
+
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -94,23 +100,16 @@ jobs:
         with:
           repository: ${{ inputs.target_repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: target_repository_folder
+          path: ${{ inputs.target_repository_folder }}
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
-          cd ./target_repository_folder
-          git config --global user.email "buildbot@rentman.nl"
-          git config --global user.name "BuildBot"
-          git add ${{ inputs.version_file_path }} 
-          git commit -m "Bump version to ${{ needs.tag.outputs.new_tag }}"
-          git tag ${{ needs.tag.outputs.new_tag }}
-          git push
-          git push origin tag ${{ needs.tag.outputs.new_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
-          VERSION_FILE_PATH: ./target_repository_folder/${{ inputs.version_file_path }}
+          TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
+          VERSION_FILE_PATH: ${{ inputs.version_file_path }}
 
   docker-build:
     name: Build Production image
