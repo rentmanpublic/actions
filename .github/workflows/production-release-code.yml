@@ -86,7 +86,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions  # Directory where the other repo will be checked out
       - name: Push new tag to github
-        uses: actions/checkout@v4
         run: |
           chmod +x actions/scripts/update_version.sh
           actions/scripts/update_version.sh
