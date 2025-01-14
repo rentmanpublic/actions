@@ -54,6 +54,8 @@ on:
         required: true
         description: AWS access key secret
 
+permissions:
+  contents: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
