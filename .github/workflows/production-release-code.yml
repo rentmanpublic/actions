@@ -3,6 +3,11 @@ name: Production Release Code
 on:
   workflow_call:
     inputs:
+      other_version_file_path:
+        description: The path to the php version file
+        type: string
+        required: false
+        default: ./app/version.php
       version_file_path:
         description: The path to the php version file
         type: string
@@ -99,6 +104,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
+          OTHER_VERSION_FILE_PATH: ${{ inputs.other_version_file_path }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
 
   docker-build:
