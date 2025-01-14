@@ -8,6 +8,11 @@ fi
 # Add .php extension to the filename
 file= "$VERSION_FILE_PATH"
 
+ls
+ls ./translations
+ls translations/app
+ls ../translations/app
+
 # Write content to the file
 echo "<?php" > "$file"
 echo "" >> "$file"
