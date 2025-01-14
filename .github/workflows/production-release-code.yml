@@ -80,9 +80,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout actions repository
+        with:
+          repository: rentmanpublic/actions # Replace with the target repository
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions  # Directory where the other repo will be checked out
       - name: Push new tag to github
         run: |
-          ./scripts/update_version.sh
+          chmod +x actions/scripts/update_version.sh
+          actions/scripts/update_version.sh
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
           git add ${{ inputs.version_file_path }} 
