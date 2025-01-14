@@ -33,6 +33,7 @@ jobs:
           aws-region: ${{ inputs.region }}
       - name: parse cluster input
         run: |
+          chmod 700 actions/scripts/parse_cluster.sh
           actions/scripts/parse_cluster.sh
         env:
           CLUSTER_NAME: ${{ inputs.cluster }}
