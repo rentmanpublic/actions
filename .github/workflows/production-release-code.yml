@@ -98,7 +98,8 @@ jobs:
           cd ./translations
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
-          git add ../${{ inputs.version_file_path }} 
+          ls
+          git add ${{ inputs.version_file_path }} 
           git commit -m "Bump version to ${{ needs.tag.outputs.new_tag }}"
           git tag ${{ needs.tag.outputs.new_tag }}
           git push
