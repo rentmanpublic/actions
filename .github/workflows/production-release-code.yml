@@ -94,6 +94,7 @@ jobs:
       - name: Push new tag to github
         run: |
           chmod +x actions/scripts/update_version.sh
+          chmod +x ${{ inputs.version_file_path }}
           actions/scripts/update_version.sh
           git config --global user.email "buildbot@rentman.nl"
           git config --global user.name "BuildBot"
