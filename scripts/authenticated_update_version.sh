@@ -29,7 +29,7 @@ if grep -q "$GIT_TAG" "$file"; then
 
     cd ./$TARGET_REPOSITORY_FOLDER
 
-    git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$TARGET_REPOSITORY
+#    git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$TARGET_REPOSITORY
     git config user.name BuildBot
     git config user.email buildbot@rentman.nl
 
