@@ -94,7 +94,9 @@ jobs:
           path: actions
       - id: image_name
         name: Check which image name to use based on enviroment
-        run: actions/scripts/determine_image_name.sh
+        run: |
+          chmod 700 actions/scripts/determine_image_name.sh
+          actions/scripts/determine_image_name.sh
         env:
           SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
           PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}

@@ -143,7 +143,7 @@ jobs:
       - name: Check which image name to use based on enviroment
         id: image_name
         run: |
-          chmod 700 actions/scripts/update_version.sh
+          chmod 700 actions/scripts/determine_image_name.sh
           actions/scripts/determine_image_name.sh
         env:
           SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
