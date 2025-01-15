@@ -28,13 +28,24 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   if grep -q "$GIT_TAG" "$file"; then
 
     cd ./$TARGET_REPOSITORY_FOLDER
-    git config --global user.email "buildbot@rentman.nl"
-    git config --global user.name "BuildBot"
+
+    git config user.name BuildBot
+    git config user.email buildbot@rentman.nl
+
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG
-    git push
-    git push origin tag $GIT_TAG
+
+
+    if ! git push; then
+      echo "Failed to push the version file"
+      exit 1
+    fi
+
+    if !git push origin tag $GIT_TAG; then
+      echo "Failed to push tag $GIT_TAG"
+      exit 1
+    fi
 
       echo "Version file '$GIT_TAG' updated successfully!"
   else
