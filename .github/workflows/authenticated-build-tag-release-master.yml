@@ -87,11 +87,10 @@ jobs:
   ensure-app-ci-key:
     name: Check if app-ci-key is provided for protected repositories
     runs-on: ubuntu-latest
-    if: ${{ inputs.is_repository_protected == true }}
     steps:
       - id: ensure-app-ci-key
         run: |
-          if [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}" ]; then
+          if [ ${{ inputs.is_repository_protected }} == true && -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
             echo "Error: RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
