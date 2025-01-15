@@ -30,8 +30,8 @@ if grep -q "$GIT_TAG" "$file"; then
     cd ./$TARGET_REPOSITORY_FOLDER
 
     git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$TARGET_REPOSITORY
-    git config user.name github-actions
-    git config user.email github-actions@github.com
+    git config user.name BuildBot
+    git config user.email buildbot@rentman.nl
 
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
