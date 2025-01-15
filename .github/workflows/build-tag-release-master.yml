@@ -53,7 +53,7 @@ on:
         required: true
       programming_language:
         description: 'Choose the programming language of the project'
-        required: true
+        required: false
         type: string
         default: 'php'
       node_version:
