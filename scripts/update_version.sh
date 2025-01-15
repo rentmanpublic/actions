@@ -64,9 +64,9 @@ if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
     echo "Failed to push the version file"
     exit 1
   fi
-  if ! git push origin tag $GIT_TAG; then
-    echo "Failed to push tag $GIT_TAG"
+  if ! git push origin --tags; then
+    echo "Failed to push tag"
     exit 1
   fi
-  echo "Version file '$GIT_TAG' updated successfully!"
+  echo "Package json updated successfully!"
 fi
