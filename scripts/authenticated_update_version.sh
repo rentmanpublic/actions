@@ -36,7 +36,12 @@ if grep -q "$GIT_TAG" "$file"; then
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG
 
-    git push
+    if ! git push; then
+      echo "FAILED TO PUSH"
+    else
+      echo "IT PUSHED"
+    fi
+
     git push origin tag $GIT_TAG
 
     echo "Version file '$GIT_TAG' updated successfully!"
