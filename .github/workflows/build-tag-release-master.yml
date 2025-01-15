@@ -61,6 +61,11 @@ on:
         required: false
         type: string
         default: ''
+      is_repository_protected:
+        description: Set this to true if authentication is required
+        type: boolean
+        default: false
+
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -68,9 +73,10 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access key secret
+      RENTMAN_CI_APP_SECRET_KEY:
+        required: false
+        description: Github token generation secret key
 
-permissions:
-  contents: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -79,8 +85,6 @@ jobs:
   ensure-master-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
-    outputs:
-      status: ${{ steps.early.outputs.status }}
     runs-on: ubuntu-latest
     steps:
       - id: early
@@ -90,12 +94,20 @@ jobs:
             echo "Error this can only run on master branch"
             exit 1
           fi
-          echo "status=success" >> $GITHUB_OUTPUT
 
+  ensure-app-ci-key:
+    name: Check if app-ci-key is provided for protected repositories
+    runs-on: ubuntu-latest
+    steps:
+      - id: ensure-app-ci-key
+        run: |
+          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
+            exit 1
+          fi
   tag:
     name: Generating new GitHub tag
-    needs: ensure-master-branch
-    if: needs.ensure-master-branch.outputs.status == 'success'
+    needs: [ensure-master-branch, ensure-app-ci-key]
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -114,6 +126,10 @@ jobs:
     name: Update version, tagging in GitHub
     needs: tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      actions: 'read'
     steps:
       - name: Checkout actions repository
         uses: actions/checkout@v4
@@ -121,11 +137,20 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+
+      - name: Create Git Auth Token
+        if: ${{ inputs.is_repository_protected == true }}
+        uses: actions/create-github-app-token@v1
+        id: github-token
+        with:
+          app-id: 1112653
+          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
       - name: use node
         if : ${{ inputs.node_version != '' }}
@@ -137,10 +162,11 @@ jobs:
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
+          TARGET_REPOSITORY: ${{ inputs.target_repository }}
           PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
   determine-image-name:
