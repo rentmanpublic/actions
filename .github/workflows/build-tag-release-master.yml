@@ -51,6 +51,11 @@ on:
         description: 'AWS region'
         type: string
         required: true
+      programming_language:
+        description: 'Choose the programming language of the project'
+        required: true
+        type: string
+        default: 'php'
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -126,6 +131,7 @@ jobs:
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
+          PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
   determine-image-name:
     name: Determine image name based on environment

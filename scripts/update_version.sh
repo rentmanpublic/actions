@@ -17,12 +17,18 @@ else
   ls -l
 fi
 
-# Write content to the file
-echo "<?php" > "$file"
-echo "" >> "$file"
-echo "namespace Rentman;" >> "$file"
-echo "" >> "$file"
-echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
+if [ $PROGRAMMING_LANGUAGE == "php" ]; then
+  # Write content to the file
+  echo "<?php" > "$file"
+  echo "" >> "$file"
+  echo "namespace Rentman;" >> "$file"
+  echo "" >> "$file"
+  echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
+
+elif [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
+  # Write content to the file
+  echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
+fi
 
 # Make sure the file is updated and display success message
 if grep -q "$GIT_TAG" "$file"; then
@@ -39,6 +45,6 @@ if grep -q "$GIT_TAG" "$file"; then
 
     echo "Version file '$GIT_TAG' updated successfully!"
 else
-    echo "Failed to create the PHP file."
+    echo "Failed to create the version file."
     exit 1;
 fi
