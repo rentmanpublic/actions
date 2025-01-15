@@ -89,9 +89,9 @@ jobs:
       - name: Checkout actions repository
         uses: actions/checkout@v4
         with:
-        - repository: rentmanpublic/actions
-        - token: ${{ secrets.GITHUB_TOKEN }}
-        - path: actions
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
       - id: image_name
         name: Check which image name to use based on enviroment
         run: actions/scripts/determine_image_name.sh
