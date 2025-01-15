@@ -137,19 +137,19 @@ jobs:
       - id: image_name
         name: Check which image name to use based on enviroment
         run: |
-          if [ "${{ inputs.ecs_cluster }}" == "-" ]; then
+          if [ "${{ inputs.ecs_cluster }}" == "RM4G" ]; then
             if [ -n "${{ inputs.production_image_name}}" ]; then
               echo "image_name=${{inputs.production_image_name}}" >> $GITHUB_OUTPUT
               exit 0
             fi
           
-          elif [ "${{ inputs.ecs_cluster }}" == "-" ]; then
+          elif [ "${{ inputs.ecs_cluster }}" == "Staging" ]; then
             if [ -n "${{ inputs.staging_image_name}}" ]; then
               echo "image_name=${{inputs.staging_image_name}}" >> $GITHUB_OUTPUT
               exit 0
             fi
           
-          elif [ "${{ inputs.ecs_cluster }}" == "-" ]; then
+          elif [ "${{ inputs.ecs_cluster }}" == "Utils" ]; then
             if [ -n "${{ inputs.util_image_name}}" ]; then
               echo "image_name=${{inputs.util_image_name}}" >> $GITHUB_OUTPUT
               exit 0
