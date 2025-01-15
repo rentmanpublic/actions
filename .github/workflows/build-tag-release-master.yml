@@ -169,7 +169,7 @@ jobs:
 
   determine-image-name:
     name: Determine image name based on environment
-    needs: [push-new-tag, ensure-master-branch]
+    needs: push-new-tag
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
@@ -193,7 +193,7 @@ jobs:
 
   docker-build:
     name: Build image
-    needs: [tag,  push-new-tag, determine-image-name]
+    needs: [tag, determine-image-name]
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
