@@ -49,7 +49,7 @@ on:
       is_repository_protected:
         description: Set this to true if authentication is required
         type: boolean
-        default: false
+        default: true
 
     secrets:
       AWS_ACCESS_KEY_ID:
