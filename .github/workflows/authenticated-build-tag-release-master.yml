@@ -46,7 +46,7 @@ on:
         description: 'AWS region'
         type: string
         required: true
-      github_create_ci_token_app_id:
+      github_token:
         description: Create github app token app id
         type: string
         required: true
@@ -57,9 +57,6 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access key secret
-      RENTMAN_CI_APP_SECRET_KEY:
-        required: true
-        description: Repository secret key for github actions
 
 permissions:
   contents: write
@@ -111,11 +108,6 @@ jobs:
       packages: 'write'
       actions: 'read'
     steps:
-      - uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ inputs.github_create_ci_token_app_id }}
-          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout actions repository
         uses: actions/checkout@v4
         with:
@@ -126,7 +118,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ inputs.github_token }}
           path: ${{ inputs.target_repository_folder }}
           persist-credentials: false
       - name: Push new tag to github
