@@ -89,12 +89,6 @@ jobs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
     steps:
-      - name: github-token
-        uses: actions/create-github-app-token@v1
-        id: github-token
-        with:
-          app-id: 1112653
-          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - uses: actions/checkout@v4
       - name: Create new minor version tag
         id: tag_version
@@ -120,11 +114,18 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+      - name: github-token
+        uses: actions/create-github-app-token@v1
+        id: github-token
+        with:
+          app-id: 1112653
+          private-key:
+            ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ inputs.github_token }}
+          token: ${{ steps.github-token.outputs.token }}
           path: ${{ inputs.target_repository_folder }}
           persist-credentials: false
       - name: Push new tag to github
