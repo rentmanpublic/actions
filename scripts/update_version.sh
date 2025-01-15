@@ -34,7 +34,7 @@ if grep -q "$GIT_TAG" "$file"; then
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG
-    git push || exit 1
+    git push
     git push origin tag $GIT_TAG
 
     echo "Version file '$GIT_TAG' updated successfully!"
