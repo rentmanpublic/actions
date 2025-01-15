@@ -28,10 +28,15 @@ echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
 if grep -q "$GIT_TAG" "$file"; then
 
     cd ./$TARGET_REPOSITORY_FOLDER
+
     git remote set-url origin https://$GITHUB_TOKEN@github.com/BuildBot/$TARGET_REPOSITORY.git
+    git config user.name github-actions
+    git config user.email github-actions@github.com
+
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG
+
     git push
     git push origin tag $GIT_TAG
 
