@@ -70,7 +70,8 @@ if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
   git config user.email buildbot@rentman.nl
 
   # find and replace "version" in package.json
-  sed -i "/version/c\\\"version\": \"$GIT_TAG\"," "$TARGET_REPOSITORY_FOLDER/package.json"
+  ls
+  sed -i "/version/c\\\"version\": \"$GIT_TAG\"," package.json
   git diff
   # run npm i --package-lock-only
   npm i --package-lock-only
