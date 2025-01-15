@@ -45,7 +45,7 @@ fi
 
 
 # Checking if push was successfull
-git pull
+git pull --rebase
 file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
 
 if ! grep -1 "$GIT_TAG" "$file"; then
