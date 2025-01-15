@@ -125,7 +125,6 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ steps.github-token.outputs.token }}
           path: ${{ inputs.target_repository_folder }}
-          persist-credentials: false
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/authenticated_update_version.sh
