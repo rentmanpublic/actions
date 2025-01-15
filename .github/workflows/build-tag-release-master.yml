@@ -150,7 +150,6 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
-          persist-credentials: false
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
@@ -161,7 +160,7 @@ jobs:
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
