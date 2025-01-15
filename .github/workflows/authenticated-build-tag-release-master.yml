@@ -46,10 +46,6 @@ on:
         description: 'AWS region'
         type: string
         required: true
-      github_token:
-        description: Create github app token app id
-        type: string
-        required: true
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
