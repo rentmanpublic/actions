@@ -137,12 +137,14 @@ jobs:
       - name: Checkout actions repository
         uses: actions/checkout@v4
         with:
-          - repository: rentmanpublic/actions
-          - token: ${{ secrets.GITHUB_TOKEN }}
-          - path: actions
-      - id: image_name
-        name: Check which image name to use based on enviroment
-        run: actions/scripts/determine_image_name.sh
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+      - name: Check which image name to use based on enviroment
+        id: image_name
+        run: |
+          chmod 700 actions/scripts/update_version.sh
+          actions/scripts/determine_image_name.sh
         env:
           SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
           PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
