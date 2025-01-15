@@ -55,16 +55,29 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
 fi
 
 if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
+  file="$TARGET_REPOSITORY_FOLDER/package.json"
+
   # Write content to the file
   cd ./$TARGET_REPOSITORY_FOLDER
   git config user.name BuildBot
   git config user.email buildbot@rentman.nl
-  npm version minor
+
+  # find and replace "version" in package.json
+  sed -i "/version/c\\\"version\": \"$GIT_TAG\"," file
+
+  # run npm i --package-lock-only
+  npm i --package-lock-only
+  # git add files
+  git add package.json package-lock.json
+  # git commit files and tags and push both
+  git commit -m "Bump version to $GIT_TAG"
+  git tag $GIT_TAG
+
   if ! git push; then
     echo "Failed to push the version file"
     exit 1
   fi
-  if ! git push origin --tags; then
+  if ! git push origin tag $GIT_TAG; then
     echo "Failed to push tag"
     exit 1
   fi
