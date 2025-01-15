@@ -84,10 +84,20 @@ jobs:
             exit 1
           fi
           echo "status=success" >> $GITHUB_OUTPUT
-
+  ensure-app-ci-key:
+    name: Check if app-ci-key is provided for protected repositories
+    runs-on: ubuntu-latest
+    if: ${{ inputs.is_repository_protected == true }}
+    steps:
+      - id: ensure-app-ci-key
+        run: |
+          if [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}" ]; then
+            echo "Error: RENTMAN_CI_APP_SECRET_KEY is not defined."
+            exit 1
+          fi
   tag:
     name: Generating new GitHub tag
-    needs: ensure-master-branch
+    needs: [ensure-master-branch, ensure-app-ci-key]
     if: needs.ensure-master-branch.outputs.status == 'success'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
