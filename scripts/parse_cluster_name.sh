@@ -5,7 +5,7 @@ fi
 
 # Map tag values to cluster names
 case "$ENVIRONMENT_NAME" in
-    "Production")
+    "RM4G")
         TAG_NAME="MainCluster"
         ;;
     "Staging")

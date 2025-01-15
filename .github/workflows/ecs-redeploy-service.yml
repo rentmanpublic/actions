@@ -39,8 +39,8 @@ jobs:
               aws-region: ${{ inputs.region }}
           - name: fetch cluster name
             run: |
-              chmod 700 actions/scripts/parse_cluster.sh
-              actions/scripts/parse_cluster.sh
+              chmod 700 actions/scripts/parse_cluster_name.sh
+              actions/scripts/parse_cluster_name.sh
             env:
               ENVIRONMENT_NAME: ${{ inputs.cluster }}
               REGION: ${{ inputs.region }}
