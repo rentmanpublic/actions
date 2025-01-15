@@ -25,10 +25,15 @@ on:
         type: string
         required: false
         default: target_repository_folder
-      image_name:
-        description: The name the docker image. This is also the name of the ECR repository
+      production_image_name:
+        description: The name the production docker image. This is also the name of the ECR repository (optional)
         type: string
-        required: true
+      staging_image_name:
+        description: The name the staging docker image. This is also the name of the ECR repository (optional)
+        type: string
+      util_image_name:
+        description: The name the util docker image. This is also the name of the ECR repository (optional)
+        type: string
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
@@ -74,13 +79,47 @@ jobs:
           fi
           echo "status=success" >> $GITHUB_OUTPUT
 
+  determine-image-name:
+    name: Determine image name based on environment
+    needs: ensure-master-branch
+    outputs:
+      image_name: ${{ steps.image_name.outputs.image_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: image_name
+        name: Check which image name to use based on enviroment
+        run: |
+          if [ "${{ inputs.ecs_cluster }}" == "RM4G" ]; then
+            if [ -n "${{ inputs.production_image_name}}"]; then
+              echo "image_name=${{inputs.production_image_name}}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          
+          elif [ "${{ inputs.ecs_cluster }}" == "Staging" ]; then
+            if [ -n "${{ inputs.staging_image_name}}"]; then
+              echo "image_name=${{inputs.staging_image_name}}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          
+          elif [ "${{ inputs.ecs_cluster }}" == "Util" ]; then
+            if [ -n "${{ inputs.util_image_name}}"]; then
+              echo "image_name=${{inputs.util_image_name}}" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          
+          echo "Invalid image name config for environment ${{inputs.ecs_cluster}}"
+          exit 1
+
   docker-build:
     name: Build image
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
-    needs: ensure-master-branch
+    needs: determine-image-name
     if: needs.ensure-master-branch.outputs.status == 'success'
     with:
-      image_name: ${{ inputs.image_name }}
+      image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest ${{ inputs.target_version  }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
