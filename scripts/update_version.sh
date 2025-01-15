@@ -57,6 +57,8 @@ fi
 if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
   # Write content to the file
   cd ./$TARGET_REPOSITORY_FOLDER
+  git config user.name BuildBot
+  git config user.email buildbot@rentman.nl
   npm version minor
   if ! git push; then
     echo "Failed to push the version file"
