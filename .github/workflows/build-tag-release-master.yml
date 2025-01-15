@@ -150,6 +150,7 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
+          persist-credentials: false
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
