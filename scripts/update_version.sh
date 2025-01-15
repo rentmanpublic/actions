@@ -6,6 +6,7 @@ if [[ -z "$GIT_TAG" ]]; then
     exit 1;
 fi
 
+
 if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   # Add .php extension to the filename
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
@@ -55,8 +56,14 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
 fi
 
 if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
-  file="$TARGET_REPOSITORY_FOLDER/package.json"
 
+  file="$TARGET_REPOSITORY_FOLDER/package.json"
+  echo 'Starting'
+  if [ -f $file ]; then
+    chmod 700 $file
+  else
+    echo "File does not exist:"
+  fi
   # Write content to the file
   cd ./$TARGET_REPOSITORY_FOLDER
   git config user.name BuildBot
@@ -64,7 +71,7 @@ if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
 
   # find and replace "version" in package.json
   sed -i "/version/c\\\"version\": \"$GIT_TAG\"," file
-
+  git diff
   # run npm i --package-lock-only
   npm i --package-lock-only
   # git add files
