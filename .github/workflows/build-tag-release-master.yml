@@ -85,6 +85,8 @@ jobs:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.early.outputs.status }}
     steps:
       - id: early
         name: Checking if current branch is master
@@ -93,6 +95,9 @@ jobs:
             echo "Error this can only run on master branch"
             exit 1
           fi
+          
+          echo "status=success" >> $GITHUB_OUTPUT
+
 
   ensure-app-ci-key:
     name: Check if app-ci-key is provided for protected repositories
@@ -107,6 +112,7 @@ jobs:
   tag:
     name: Generating new GitHub tag
     needs: [ensure-master-branch, ensure-app-ci-key]
+    if: needs.ensure-master-branch.outputs.status == 'success'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -136,30 +142,30 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
-#      - name: Create Git Auth Token
-#        if: ${{ inputs.is_repository_protected == true }}
-#        uses: actions/create-github-app-token@v1
-#        id: github-token
-#        with:
-#          app-id: 1112653
-#          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+      - name: Create Git Auth Token
+        if: ${{ inputs.is_repository_protected == true }}
+        uses: actions/create-github-app-token@v1
+        id: github-token
+        with:
+          app-id: 1112653
+          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
-#      - name: use node
-#        if: ${{ inputs.node_version != '' }}
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: ${{ inputs.node_version }}
+      - name: use node
+        if: ${{ inputs.node_version != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
