@@ -125,24 +125,18 @@ jobs:
         with:
           app-id: 1112653
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
-      - name: Set GITHUB_TOKEN
-        run: |
-          if [ -n "${{ steps.github-token.outputs.token }}" ]; then
-            echo "GITHUB_TOKEN=${{ steps.github-token.outputs.token }}" >> $GITHUB_ENV
-          else
-            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          fi
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ github.env.GITHUB_TOKEN }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/authenticated_update_version.sh
           actions/scripts/authenticated_update_version.sh
         env:
+          GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
