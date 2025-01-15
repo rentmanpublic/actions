@@ -119,7 +119,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
       - name: Create Git Auth Token
-        if: ${{ inputs.is_repository_protected == 'true' }}
+        if: ${{ inputs.is_repository_protected == true }}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
