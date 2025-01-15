@@ -114,7 +114,7 @@ jobs:
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:
-          app-id: ${{ inputs.app_id }}
+          app-id: ${{ inputs.github_create_ci_token_app_id }}
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout actions repository
         uses: actions/checkout@v4
