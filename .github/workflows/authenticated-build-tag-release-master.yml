@@ -136,7 +136,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
-          token: ${{ steps.github-token.outputs.token }}
+          token: ${{ github.env.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
       - name: Push new tag to github
         run: |
