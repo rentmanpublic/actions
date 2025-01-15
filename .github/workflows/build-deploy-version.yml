@@ -1,4 +1,4 @@
-name: Build and Deploy Specific Version To Production
+name: Build and Deploy Specific Version
 
 on:
   workflow_call:
@@ -75,7 +75,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
   docker-build:
-    name: Build Production image
+    name: Build image
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     needs: ensure-master-branch
     if: needs.ensure-master-branch.outputs.status == 'success'
@@ -90,8 +90,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
 
-  deploy-production:
-      name: Deploy to Production
+  deploy:
+      name: Deploy to ECS
       needs: docker-build
       uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
       with:
