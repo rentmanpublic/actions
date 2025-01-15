@@ -119,8 +119,7 @@ jobs:
         id: github-token
         with:
           app-id: 1112653
-          private-key:
-            ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
