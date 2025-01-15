@@ -66,25 +66,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-#  ensure-master-branch:
-#    name: Check current branch
-#    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
-#    outputs:
-#      status: ${{ steps.early.outputs.status }}
-#    runs-on: ubuntu-latest
-#    steps:
-#      - id: early
-#        name: Checking if current branch is master
-#        run: |
-#          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
-#            echo "Error this can only run on master branch"
-#            exit 1
-#          fi
-#          echo "status=success" >> $GITHUB_OUTPUT
+  ensure-master-branch:
+    name: Check current branch
+    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
+    outputs:
+      status: ${{ steps.early.outputs.status }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: early
+        name: Checking if current branch is master
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
+            echo "Error this can only run on master branch"
+            exit 1
+          fi
+          echo "status=success" >> $GITHUB_OUTPUT
 
   tag:
     name: Generating new GitHub tag
-#    needs: ensure-master-branch
+    needs: ensure-master-branch
     if: needs.ensure-master-branch.outputs.status == 'success'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
