@@ -94,7 +94,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ inputs.github_token }}
           tag_prefix: ''
           default_bump: ${{ inputs.version_bump }}
           dry_run: true
@@ -123,10 +123,12 @@ jobs:
           persist-credentials: false
       - name: Push new tag to github
         run: |
+          echo $GH_TOKEN
           chmod 700 actions/scripts/authenticated_update_version.sh
           actions/scripts/authenticated_update_version.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ inputs.github_token }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
