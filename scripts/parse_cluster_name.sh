@@ -3,15 +3,17 @@ if [[ -z "$ENVIRONMENT_NAME" ]]; then
     exit 1;
 fi
 
+ENVIRONMENT_NAME_LOWER=$(echo "$ENVIRONMENT_NAME" | tr '[:upper:]' '[:lower:]')
+
 # Map tag values to cluster names
-case "$ENVIRONMENT_NAME" in
-    "RM4G")
+case "$ENVIRONMENT_NAME_LOWER" in
+    "rm4g")
         TAG_NAME="MainCluster"
         ;;
-    "Staging")
+    "staging")
         TAG_NAME="Staging"
         ;;
-    "Util")
+    "util")
         TAG_NAME="Util"
         ;;
     *)
