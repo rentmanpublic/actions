@@ -134,6 +134,7 @@ jobs:
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
+          TARGET_REPOSITORY: ${{ inputs.target_repository }}
 
   docker-build:
     name: Build Production image
