@@ -30,9 +30,7 @@ if grep -q "$GIT_TAG" "$file"; then
     cd ./$TARGET_REPOSITORY_FOLDER
     git config --global user.email "buildbot@rentman.nl"
     git config --global user.name "BuildBot"
-    echo "Git Credentials -----------------"
-    git config -l
-    echo "Git Credentials -----------------"
+
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG

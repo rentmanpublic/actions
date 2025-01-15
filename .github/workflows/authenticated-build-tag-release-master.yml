@@ -46,6 +46,11 @@ on:
         description: 'AWS region'
         type: string
         required: true
+      is_repository_protected:
+        description: Set this to true if authentication is required
+        type: boolean
+        default: false
+
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -113,12 +118,20 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
-      - name: github-token
+      - name: Create Git Auth Token
+        if: ${{ inputs.is_repository_protected == 'true' }}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
           app-id: 1112653
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+      - name: Set GITHUB_TOKEN
+        run: |
+          if [ -n "${{ steps.github-token.outputs.token }}" ]; then
+            echo "GITHUB_TOKEN=${{ steps.github-token.outputs.token }}" >> $GITHUB_ENV
+          else
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          fi
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
@@ -130,7 +143,6 @@ jobs:
           chmod 700 actions/scripts/authenticated_update_version.sh
           actions/scripts/authenticated_update_version.sh
         env:
-          GITHUB_TOKEN: ${{ steps.github-token.outputs.token }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
