@@ -46,6 +46,10 @@ on:
         description: 'AWS region'
         type: string
         required: true
+      github_create_ci_token_app_id:
+        description: Create github app token app id
+        type: string
+        required: true
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -124,6 +128,7 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ steps.app-token.outputs.token }}
           path: ${{ inputs.target_repository_folder }}
+          persist-credentials: false
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/authenticated_update_version.sh
