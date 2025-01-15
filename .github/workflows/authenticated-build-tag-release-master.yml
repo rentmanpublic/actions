@@ -57,6 +57,9 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access key secret
+      RENTMAN_CI_APP_SECRET_KEY:
+        required: true
+        description: Github token generation secret key
 
 permissions:
   contents: write
