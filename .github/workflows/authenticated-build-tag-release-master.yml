@@ -93,7 +93,7 @@ jobs:
     steps:
       - id: ensure-app-ci-key
         run: |
-          if [ ${{ inputs.is_repository_protected }} == true && -z "${{ secrets.TEMP_KEY }}"  ]; then
+          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.TEMP_KEY }}"  ]; then
             echo "Error: RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
