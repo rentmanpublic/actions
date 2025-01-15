@@ -134,30 +134,20 @@ jobs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          - repository: rentmanpublic/actions
+          - token: ${{ secrets.GITHUB_TOKEN }}
+          - path: actions
       - id: image_name
         name: Check which image name to use based on enviroment
-        run: |
-          if [ "${{ inputs.ecs_cluster }}" == "RM4G" ]; then
-            if [ -n "${{ inputs.production_image_name}}" ]; then
-              echo "image_name=${{inputs.production_image_name}}" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          
-          elif [ "${{ inputs.ecs_cluster }}" == "Staging" ]; then
-            if [ -n "${{ inputs.staging_image_name}}" ]; then
-              echo "image_name=${{inputs.staging_image_name}}" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          
-          elif [ "${{ inputs.ecs_cluster }}" == "Utils" ]; then
-            if [ -n "${{ inputs.util_image_name}}" ]; then
-              echo "image_name=${{inputs.util_image_name}}" >> $GITHUB_OUTPUT
-              exit 0
-            fi
-          fi
-          
-          echo "Invalid image name config for environment ${{inputs.ecs_cluster}}"
-          exit 1
+        run: actions/scripts/determine_image_name.sh
+        env:
+          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
 
   docker-build:
     name: Build image
