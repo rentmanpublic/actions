@@ -56,6 +56,11 @@ on:
         required: true
         type: string
         default: 'php'
+      node_version:
+        description: 'Choose the node version to use for node projects'
+        required: false
+        type: string
+        default: ''
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -122,6 +127,11 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
+      - name: use node
+        if : ${{ inputs.node_version != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
         run: |
           chmod 700 actions/scripts/update_version.sh
