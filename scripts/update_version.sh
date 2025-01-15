@@ -42,3 +42,13 @@ else
     echo "Failed to create the PHP file."
     exit 1;
 fi
+
+
+# Checking if push was successfull
+git pull
+file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
+
+if ! grep -1 "$GIT_TAG" "$file"; then
+  echo "Failed to push files to Master"
+  exit 1
+fi
