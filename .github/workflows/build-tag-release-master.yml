@@ -1,4 +1,4 @@
-name: Build, Tag and Release Master To Production
+name: Build, Tag and Release Master
 
 on:
   workflow_call:
@@ -123,7 +123,7 @@ jobs:
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
 
   docker-build:
-    name: Build Production image
+    name: Build image
     needs: [tag,  push-new-tag]
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
@@ -137,8 +137,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
 
-  deploy-production:
-      name: Deploy to Production
+  deploy:
+      name: Deploy to ECS
       needs: docker-build
       uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
       with:

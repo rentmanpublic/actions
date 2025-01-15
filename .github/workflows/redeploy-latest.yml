@@ -1,4 +1,4 @@
-name: Redeploy Latest Version in AWS on Production Without Building
+name: Redeploy Latest Version in AWS without Building
 
 on:
   workflow_call:
@@ -32,8 +32,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy-production:
-      name: Redeploy latest image available on ECR on Production
+  deploy:
+      name: Redeploy latest image available on ECR to ECS
       if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
       uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
       with:
