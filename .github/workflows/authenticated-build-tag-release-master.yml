@@ -62,6 +62,7 @@ on:
         required: true
         description: Github token generation secret key
       TEMP_KEY:
+        required: false
         description: Temporary check
 
 permissions:
