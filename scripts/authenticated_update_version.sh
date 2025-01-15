@@ -39,10 +39,12 @@ if grep -q "$GIT_TAG" "$file"; then
     if ! git push; then
       echo "Failed to push the version file"
       exit 1
+    fi
 
     if !git push origin tag $GIT_TAG; then
       echo "Failed to push tag $GIT_TAG"
       exit 1
+    fi
 
     echo "Version file '$GIT_TAG' updated successfully!"
 else
