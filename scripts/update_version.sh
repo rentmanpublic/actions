@@ -34,21 +34,11 @@ if grep -q "$GIT_TAG" "$file"; then
     git add $VERSION_FILE_PATH
     git commit -m "Bump version to $GIT_TAG"
     git tag $GIT_TAG
-    git push
+    git push || exit 1
     git push origin tag $GIT_TAG
 
     echo "Version file '$GIT_TAG' updated successfully!"
 else
     echo "Failed to create the PHP file."
     exit 1;
-fi
-
-
-# Checking if push was successfull
-git pull --rebase
-file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
-
-if ! grep -1 "$GIT_TAG" "$file"; then
-  echo "Failed to push files to Master"
-  exit 1
 fi
