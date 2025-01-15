@@ -49,7 +49,7 @@ on:
       is_repository_protected:
         description: Set this to true if authentication is required
         type: boolean
-        default: false
+        default: true
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -61,6 +61,8 @@ on:
       RENTMAN_CI_APP_SECRET_KEY:
         required: true
         description: Github token generation secret key
+      TEMP_KEY:
+        description: Temporary check
 
 permissions:
   contents: write
@@ -90,7 +92,7 @@ jobs:
     steps:
       - id: ensure-app-ci-key
         run: |
-          if [ ${{ inputs.is_repository_protected }} == true && -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+          if [ ${{ inputs.is_repository_protected }} == true && -z "${{ secrets.TEMP_KEY }}"  ]; then
             echo "Error: RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
