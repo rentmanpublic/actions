@@ -42,7 +42,7 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
       exit 1
     fi
 
-    if !git push origin tag $GIT_TAG; then
+    if ! git push origin tag $GIT_TAG; then
       echo "Failed to push tag $GIT_TAG"
       exit 1
     fi
