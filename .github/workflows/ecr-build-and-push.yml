@@ -92,6 +92,7 @@ on:
         description: The public key for Oauth authentication
 jobs:
   build:
+    name: Build image
     runs-on: ubuntu-latest
 
     steps:
@@ -131,6 +132,10 @@ jobs:
         run: |
           if [ -z "${{secrets.TRANSLATIONS_SECRET}}" ]; then
             echo "No secret to download translations"
+            exit 1
+          fi
+          if [ -z "${{inputs.version}}" ]; then
+            echo "Version parameter is required to download translations"
             exit 1
           fi
           echo "-----Downloading translations-----"

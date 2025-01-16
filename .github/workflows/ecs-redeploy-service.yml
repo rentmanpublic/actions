@@ -23,6 +23,7 @@ on:
         description: AWS access key secret
 jobs:
     redeploy:
+        name: Redeploy latest image available on ECR to ECS
         runs-on: ubuntu-latest
         steps:
           - name: Checkout actions repository
