@@ -92,12 +92,13 @@ jobs:
       - id: early_exit
         name: Checking chosen cluster and branch
         run: |
+          echo "create_tag=true" >> $GITHUB_OUTPUT
           if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
             echo "Releasing to RM4G can only be done from master branch"
             exit 1
           fi
-          echo "create_tag=true" >> $GITHUB_OUTPUT
-  
+          echo "create_tag=false" >> $GITHUB_OUTPUT
+          
 
   ensure-app-ci-key:
     name: Check if app-ci-key is provided for protected repositories
