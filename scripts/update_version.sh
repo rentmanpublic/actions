@@ -1,10 +1,13 @@
 #!/bin/bash
 
+git config user.name BuildBot
+git config user.email buildbot@rentman.nl
 
 if [[ -z "$GIT_TAG" ]]; then
     echo "No tag provided"
     exit 1;
 fi
+
 
 
 if [ $PROGRAMMING_LANGUAGE == "php" ]; then
@@ -22,33 +25,17 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   # Write content to the file
   echo "<?php" > "$file"
   echo "" >> "$file"
-  echo "namespace Rentman;" >> "$file"
+  echo "namespace $VERSION_NAMESPACE};" >> "$file"
   echo "" >> "$file"
-  echo "const $VERSION_CONSTANT_NAME = '$GIT_TAG';"  >> "$file"
+  echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
   # Make sure the file is updated and display success message
   if grep -q "$GIT_TAG" "$file"; then
 
     cd ./$TARGET_REPOSITORY_FOLDER
 
-    git config user.name BuildBot
-    git config user.email buildbot@rentman.nl
-
     git add $VERSION_FILE_PATH
-    git commit -m "Bump version to $GIT_TAG"
-    git tag $GIT_TAG
 
-
-    if ! git push; then
-      echo "Failed to push the version file"
-      exit 1
-    fi
-
-    if ! git push origin tag $GIT_TAG; then
-      echo "Failed to push tag $GIT_TAG"
-      exit 1
-    fi
-
-      echo "Version file '$GIT_TAG' updated successfully!"
+    echo "Version file '$GIT_TAG' updated successfully!"
   else
       echo "Failed to create the version file."
       exit 1;
@@ -67,31 +54,31 @@ if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
     echo "File does not exist:"
   fi
 
-
   cd ./$TARGET_REPOSITORY_FOLDER
 
-  git config user.name BuildBot
-  git config user.email buildbot@rentman.nl
-
   # Write content to the file
+
   # find and replace "version" in package.json
   sed -i "/version/c\\  \"version\": \"$GIT_TAG\"," package.json
-  git diff
 
+  # update package log without installing node_modules
   npm i --package-lock-only
   # git add files
   git add package.json package-lock.json
-  # git commit files and tags and push both
-  git commit -m "Bump version to $GIT_TAG"
-  git tag $GIT_TAG
 
-  if ! git push; then
-    echo "Failed to push the version file"
-    exit 1
-  fi
-  if ! git push origin tag $GIT_TAG; then
-    echo "Failed to push tag"
-    exit 1
-  fi
   echo "Package json updated successfully!"
+fi
+
+
+# git commit files and tags and push both
+git commit -m "Bump version to $GIT_TAG"
+git tag $GIT_TAG
+
+if ! git push; then
+  echo "Failed to push the version file"
+  exit 1
+fi
+if ! git push origin tag $GIT_TAG; then
+  echo "Failed to push tag"
+  exit 1
 fi
