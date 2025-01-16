@@ -85,7 +85,7 @@ jobs:
   ensure-correct-branch:
     name: Check current branch
     outputs:
-      create_tag: ${{ steps.early.outputs.create_tag }}
+      create_tag: ${{ steps.early-exit.outputs.create_tag }}
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     runs-on: ubuntu-latest
     steps:
