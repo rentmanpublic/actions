@@ -202,7 +202,7 @@ jobs:
           PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
           STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
           UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
-  determine-image-name-wihout-tag:
+  determine-image-name-without-tag:
     name: Determine image name based on environment
     needs: [ensure-correct-branch,ensure-app-ci-key]
     #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
@@ -246,7 +246,7 @@ jobs:
 
   docker-build-without-tag:
     name: Build image without tag
-    needs: [determine-image-name-without-tag, ensure-correct-branch] # force it to wait on previous steps
+    needs: [ determine-image-name-without-tag, ensure-correct-branch] # force it to wait on previous steps
     if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'false' }}
     #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
