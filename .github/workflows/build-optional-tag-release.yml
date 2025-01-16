@@ -204,8 +204,8 @@ jobs:
           UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
 
   docker-build-tag:
-    name: Build image
-    needs: [tag, determine-image-name] # force it to wait on previous steps
+    name: Build image with tag
+    needs: [tag, determine-image-name, ensure-correct-branch] # force it to wait on previous steps
     if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
 #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
@@ -221,8 +221,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
 
   docker-build-without-tag:
-    name: Build image
-    needs: determine-image-name # force it to wait on previous steps
+    name: Build image without tag
+    needs: [determine-image-name, ensure-correct-branch] # force it to wait on previous steps
     if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'false' }}
     #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
