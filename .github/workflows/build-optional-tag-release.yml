@@ -175,7 +175,7 @@ jobs:
 
   determine-image-name:
     name: Determine image name based on environment
-    needs: push-new-tag
+    needs: push-new-tag # force it to wait on previous step
     if: always()  # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
@@ -200,7 +200,8 @@ jobs:
 
   docker-build:
     name: Build image
-    needs: [tag, determine-image-name]
+    needs: [tag, determine-image-name] # force it to wait on previous steps
+    if: always() # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
@@ -208,7 +209,7 @@ jobs:
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
-      ref: ${{ needs.tag.outputs.new_tag }}
+      ref: ${{ needs.tag.outputs.new_tag || ''}}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
