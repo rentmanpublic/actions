@@ -1,4 +1,4 @@
-name: Build, Tag and Release Master
+name: Build, Optional Tag, and Release
 
 on:
   workflow_call:
