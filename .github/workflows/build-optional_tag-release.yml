@@ -1,0 +1,225 @@
+name: Build, Tag and Release Master
+
+on:
+  workflow_call:
+    inputs:
+      deploy_confirmation:
+        description: 'Outcome if user manually confirmed the start of the deploy script'
+        type: string
+        required: true
+      version_bump:
+        description: 'Choose version bump granularity'
+        required: true
+        type: string
+        default: 'minor'
+      version_file_path:
+        description: The path to the php version file
+        type: string
+        required: false
+        default: app/version.php
+      target_repository:
+        description: The target repository for the build
+        type: string
+        required: true
+      target_repository_folder:
+        description: The folder in which the target repository will be checked out
+        type: string
+        required: false
+        default: target_repository_folder
+      production_image_name:
+        description: The name the production docker image. This is also the name of the ECR repository (optional)
+        type: string
+      staging_image_name:
+        description: The name the staging docker image. This is also the name of the ECR repository (optional)
+        type: string
+      util_image_name:
+        description: The name the util docker image. This is also the name of the ECR repository (optional)
+        type: string
+      dockerfile:
+        description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
+        type: string
+        required: true
+      ecs_service:
+        description: 'ECS service name'
+        type: string
+        required: true
+      ecs_cluster:
+        description: 'ECS cluster name'
+        type: string
+        required: true
+      ecs_region:
+        description: 'AWS region'
+        type: string
+        required: true
+      programming_language:
+        description: 'Choose the programming language of the project'
+        required: false
+        type: string
+        default: 'php'
+      node_version:
+        description: 'Choose the node version to use for node projects'
+        required: false
+        type: string
+        default: ''
+      is_repository_protected:
+        description: Set this to true if authentication is required
+        type: boolean
+        default: false
+        required: false
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+        description: AWS access key id
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+        description: AWS access key secret
+      RENTMAN_CI_APP_SECRET_KEY:
+        required: false
+        description: Github token generation secret key
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ensure-correct-branch:
+    name: Check current branch
+    outputs:
+      image_name: ${{ steps.early.outputs.create_tag }}
+    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: early-exit
+        name: Checking chosen cluster and branch
+        run: |
+          if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
+            echo "Releasing to RM4G can only be done from master branch"
+            exit 1
+          fi
+          echo "create_tag=true" >> $GITHUB_OUTPUT
+  
+
+  ensure-app-ci-key:
+    name: Check if app-ci-key is provided for protected repositories
+    runs-on: ubuntu-latest
+    steps:
+      - id: ensure-app-ci-key
+        run: |
+          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
+            exit 1
+          fi
+  tag:
+    name: Generating new GitHub tag
+    needs: [ensure-correct-branch, ensure-app-ci-key]
+    if: ${{ steps.outputs.create_tag == 'true' }}
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create new minor version tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ''
+          default_bump: ${{ inputs.version_bump }}
+          dry_run: true
+
+  push-new-tag:
+    name: Update version, tagging in GitHub
+    needs: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      actions: 'read'
+    steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+      - name: Create Git Auth Token
+        if: ${{ inputs.is_repository_protected == true }}
+        uses: actions/create-github-app-token@v1
+        id: github-token
+        with:
+          app-id: 1112653
+          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+      - name: Checkout to release repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.target_repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ inputs.target_repository_folder }}
+      - name: use node
+        if: ${{ inputs.node_version != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+      - name: Push new tag to github
+        run: |
+          chmod 700 actions/scripts/update_version.sh
+          actions/scripts/update_version.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TAG: ${{ needs.tag.outputs.new_tag }}
+          TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
+          VERSION_FILE_PATH: ${{ inputs.version_file_path }}
+          TARGET_REPOSITORY: ${{ inputs.target_repository }}
+          PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
+
+  determine-image-name:
+    name: Determine image name based on environment
+    needs: push-new-tag
+    if: always()  # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+    outputs:
+      image_name: ${{ steps.image_name.outputs.image_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+      - name: Check which image name to use based on enviroment
+        id: image_name
+        run: |
+          chmod 700 actions/scripts/determine_image_name.sh
+          actions/scripts/determine_image_name.sh
+        env:
+          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
+
+  docker-build:
+    name: Build image
+    needs: [tag, determine-image-name]
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
+    with:
+      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_tag: latest ${{ needs.tag.outputs.new_tag }}
+      dockerfile: ${{ inputs.dockerfile }}
+      platforms: amd64
+      push_images: 1
+      ref: ${{ needs.tag.outputs.new_tag }}
+    secrets:
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+  deploy:
+    name: Deploy to ECS
+    needs: docker-build
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+    with:
+      service: ${{ inputs.ecs_service }}
+      cluster: ${{ inputs.ecs_cluster }}
+      region:  ${{ inputs.ecs_region }}
+    secrets:
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
