@@ -75,7 +75,7 @@ if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
 
   # Write content to the file
   # find and replace "version" in package.json
-  sed -i "/version/c\\\t\"version\": \"$GIT_TAG\"," package.json
+  sed -i "/version/c\\  \"version\": \"$GIT_TAG\"," package.json
   git diff
 
   npm i --package-lock-only
