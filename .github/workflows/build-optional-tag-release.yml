@@ -263,11 +263,10 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: [docker-build-tag, docker-build-without-tag]
-    if: |
-      always() && 
+    if: ${{ always() && 
       (needs.docker-build-tag.result == 'success' || needs.docker-build-tag.result == 'skipped') && 
       (needs.docker-build-without-tag.result == 'success' || needs.docker-build-without-tag.result == 'skipped') && 
-      !(needs.docker-build-tag.result == 'skipped' && docker-build-without-tag == 'skipped')
+      !(needs.docker-build-tag.result == 'skipped' && docker-build-without-tag == 'skipped') }}
 
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
