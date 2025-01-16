@@ -112,7 +112,7 @@ jobs:
   tag:
     name: Generating new GitHub tag
     needs: [ensure-correct-branch, ensure-app-ci-key]
-    if: ${{ steps.outputs.create_tag == 'true' }}
+    if: ${{ steps.outputs.create_tag }} == 'true'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
