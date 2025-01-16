@@ -251,7 +251,7 @@ jobs:
     #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
-      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_name: ${{ needs.determine-image-name-without-tag.outputs.image_name }}
       image_tag: latest
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
