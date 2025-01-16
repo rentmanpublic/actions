@@ -226,8 +226,8 @@ jobs:
       platforms: amd64
       push_images: 1
       ref: ${{ needs.tag.outputs.new_tag }}
-      translations_client: ${{ translations_client }}
-      translations_directory: ${{ translations_directory }}
+      translations_client: ${{ inputs.translations_client }}
+      translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
