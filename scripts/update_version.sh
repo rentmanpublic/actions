@@ -58,22 +58,26 @@ fi
 if [ $PROGRAMMING_LANGUAGE == "typescript" ]; then
 
   file="$TARGET_REPOSITORY_FOLDER/package.json"
+
   echo 'Starting'
+  # make sure we are allowed to change the package.json file
   if [ -f $file ]; then
     chmod 700 $file
   else
     echo "File does not exist:"
   fi
-  # Write content to the file
+
+
   cd ./$TARGET_REPOSITORY_FOLDER
+
   git config user.name BuildBot
   git config user.email buildbot@rentman.nl
 
+  # Write content to the file
   # find and replace "version" in package.json
-  ls
-  sed -i "/version/c\\\"version\": \"$GIT_TAG\"," package.json
+  sed -i "/version/c\\\t\"version\": \"$GIT_TAG\"," package.json
   git diff
-  # run npm i --package-lock-only
+
   npm i --package-lock-only
   # git add files
   git add package.json package-lock.json
