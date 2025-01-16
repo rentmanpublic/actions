@@ -113,7 +113,6 @@ jobs:
   tag:
     name: Generating new GitHub tag
     needs: [ensure-correct-branch, ensure-app-ci-key]
-    if: needs.ensure-correct-branch.outputs.create_tag == 'true'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -121,6 +120,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Create new minor version tag
         id: tag_version
+        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +130,7 @@ jobs:
 
   push-new-tag:
     name: Update version, tagging in GitHub
-    needs: tag
+    needs: [tag, ensure-correct-branch]
     runs-on: ubuntu-latest
     permissions:
       contents: 'write'
@@ -139,29 +139,32 @@ jobs:
     steps:
       - name: Checkout actions repository
         uses: actions/checkout@v4
+        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         with:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
       - name: Create Git Auth Token
-        if: ${{ inputs.is_repository_protected == true }}
+        if: ${{ inputs.is_repository_protected == true  && needs.ensure-correct-branch.outputs.create_tag  == 'true'}}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
           app-id: 1112653
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
+        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
       - name: use node
-        if: ${{ inputs.node_version != '' }}
+        if: ${{ inputs.node_version != '' && needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
+        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         run: |
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
@@ -217,7 +220,6 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    if: ${{ needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped' }}
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service: ${{ inputs.ecs_service }}
