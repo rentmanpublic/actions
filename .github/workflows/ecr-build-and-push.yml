@@ -12,6 +12,10 @@ on:
         description: The tag where the image will be tagged with.
         type: string
         required: true
+      version:
+        description: The git version we will be deploying
+        type: string
+        required: true
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slahs.
         type: string
@@ -51,6 +55,19 @@ on:
         type: string
         default: ''
         required: false
+      translations_client:
+        description: The translation client for which we get the translations, can be 'backend' or 'core'
+        type: string
+        required: false
+      translations_directory:
+        description: The directory the translations will be written to for the build to use
+        type: string
+        required: false
+      oauth_enabled:
+        description: This build uses oauth authentication and requires the configuration of keys
+        type: boolean
+        default: false
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -64,6 +81,15 @@ on:
       SENTRY_AUTH_TOKEN:
         required: false
         description: The token to authenticate in Sentry
+      TRANSLATIONS_SECRET:
+        required: false
+        description: The secret to fetch translations
+      OAUTH_PRIVATE_KEY:
+        required: false
+        description: The private key for Oauth authentication
+      OAUTH_PUBLIC_KEY:
+        required: false
+        description: The public key for Oauth authentication
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -89,7 +115,29 @@ jobs:
       # Setup QEMO
       - name: Set up QEMU, required for buildx
         uses: docker/setup-qemu-action@v3
-      # Setup docker buildx
+      # Copy oauth keys if available in secrets
+      - name: Copy authentication secrets if available
+        if: ${{ inputs.oauth_enabled }}
+        run: |
+          if [ -z "${{secrets.OAUTH_PRIVATE_KEY}}" ] || [ -z "${{secrets.OAUTH_PUBLIC_KEY}}" ]; then
+            echo "No secrets for oauth configured"
+            exit 1
+          fi
+            echo "${{ secrets.OAUTH_PRIVATE_KEY }}" > storage/oauth-private.key
+            echo "${{ secrets.OAUTH_PUBLIC_KEY }}" > storage/oauth-public.key
+      # Download translations if needed
+      - name: Download translations
+        if: ${{ inputs.translations_client && inputs.translations_directory }}
+        run: |
+          if [ -z "${{secrets.TRANSLATIONS_SECRET}}" ]; then
+            echo "No secret to download translations"
+            exit 1
+          fi
+          echo "Downloading translations"
+          wget -S --post-data "cache=1&secret=${{secrets.TRANSLATIONS_SECRET}}&type=translations&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/locales-${{inputs.ecs_service}}-${{inputs.version}} https://translations.rentman.net/index.php
+          unzip -o /tmp/locales-${{inputs.ecs_service}}-${{inputs.version}} -d ${{ inputs.translations_directory }}
+          chmod -R a+r ${{ inputs.translations_directory }}
+     # Setup docker buildx
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
@@ -114,12 +162,12 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
-          
+
           # Pull required images
           if [[ -n "${{inputs.pull_first}}" ]]; then
-            echo 
+            echo
             echo "## Pulling required images ##"
-            for platform in ${{inputs.platforms}}; do 
+            for platform in ${{inputs.platforms}}; do
               for image in "${{inputs.pull_first}}"; do
                   echo "Pull ${ECR_REGISTRY}/${image}}"
                   docker pull --platform "linux/${platform}" "${ECR_REGISTRY}/${image}"
@@ -129,50 +177,50 @@ jobs:
             done;
             echo "List docker images:"
             docker images
-            echo 
+            echo
           fi
-          
+
           echo
           echo "List docker buildx environment"
           docker buildx ls
           docker buildx use default
-          
+
           # Find full path to docker context
           if [[ -z "${{inputs.dockerfile_context}}" ]]; then
             dockerfile_context="$GITHUB_WORKSPACE"
           else
             dockerfile_context="$GITHUB_WORKSPACE/${{inputs.dockerfile_context}}"
           fi;
-          
+
           date_tag="$(date "+%Y%m%d.%H%M%S")"
           # Loop over all platforms
-          for platform in ${{inputs.platforms}}; do 
-            
+          for platform in ${{inputs.platforms}}; do
+
             # Create all tags
             tags_space_separated=""
             tags_command=""
-          
+
             # Tags passed and one added with the timestamp
             for tag in ${IMAGE_TAG}
             do
               # In the commmand
               tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}-${platform} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${date_tag}-${tag}-${platform}"
-          
+
               # Readable output
               tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}-${platform} ${ECR_REPOSITORY}:${date_tag}-${tag}-${platform}"
-            
+
               # For the defalt platform, also tag it without th -${platform} suffix
               if [[ "${{inputs.platform_default}}" = "${platform}" ]]; then
                 tags_command="${tags_command} -t ${ECR_REGISTRY}/${ECR_REPOSITORY}:${tag}"
                 tags_space_separated="${tags_space_separated} ${ECR_REPOSITORY}:${tag}"
               fi;
             done
-          
+
             # Construct command
             command="docker buildx build --build-arg COMPOSER_AUTH --build-arg SENTRY_AUTH_TOKEN ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
             # Output what the plan is
-            echo 
+            echo
             echo "## Build ${ECR_REPOSITORY}:${IMAGE_TAG}-${platform} ##"
             echo "Tags: ${tags_space_separated}"
             echo "Dockerfile: ${{inputs.dockerfile}}"
@@ -183,7 +231,7 @@ jobs:
             else
               echo "Is default platform: "Yes";
             fi;
-          
+
             if [[ "${{inputs.push_images}}" == "1" ]]; then
               # Build
               echo "Dry run: No";

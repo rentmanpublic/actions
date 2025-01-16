@@ -66,6 +66,19 @@ on:
         type: boolean
         default: false
         required: false
+      translations_client:
+        description: The translation client for which we get the translations, can be 'backend' or 'core'
+        type: string
+        required: false
+      translations_directory:
+        description: The directory the translations will be written to for the build to use
+        type: string
+        required: false
+      oauth_enabled:
+        description: This build uses oauth authentication and requires the configuration of keys
+        type: boolean
+        default: false
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -76,6 +89,16 @@ on:
       RENTMAN_CI_APP_SECRET_KEY:
         required: false
         description: Github token generation secret key
+      RENTMAN_TRANSLATION_SERVER_SECRET:
+        required: false
+        description: Secret to access the translation server
+      OAUTH_PRIVATE_KEY:
+        required: false
+        description: The private key for Oauth authentication
+      OAUTH_PUBLIC_KEY:
+        required: false
+        description: The public key for Oauth authentication
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -150,7 +173,6 @@ jobs:
           repository: ${{ inputs.target_repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
-          persist-credentials: false
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
@@ -199,13 +221,20 @@ jobs:
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
+      version: ${{ needs.tag.outputs.new_tag }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
       ref: ${{ needs.tag.outputs.new_tag }}
+      translations_client: ${{ translations_client }}
+      translations_directory: ${{ translations_directory }}
+      oauth_enabled: ${{ inputs.oauth_enabled }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TRANSLATIONS_SECRET: ${{ secrets.RENTMAN_TRANSLATION_SERVER_SECRET }}
+      OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
+      OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
 
   deploy:
     name: Deploy to ECS
