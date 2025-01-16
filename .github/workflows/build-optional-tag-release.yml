@@ -205,7 +205,7 @@ jobs:
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
-      image_tag: latest ${{ needs.tag.outputs.new_tag }}
+      image_tag: latest ${{ needs.tag.outputs.new_tag || '' }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
@@ -217,6 +217,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
+    if: ${{ needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped' }}
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service: ${{ inputs.ecs_service }}
