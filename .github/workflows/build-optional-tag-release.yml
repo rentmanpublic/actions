@@ -113,6 +113,7 @@ jobs:
   tag:
     name: Generating new GitHub tag
     needs: [ensure-correct-branch, ensure-app-ci-key]
+    if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -120,7 +121,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Create new minor version tag
         id: tag_version
-        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+#        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -130,6 +131,7 @@ jobs:
 
   push-new-tag:
     name: Update version, tagging in GitHub
+    if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
     needs: [tag, ensure-correct-branch]
     runs-on: ubuntu-latest
     permissions:
@@ -139,32 +141,32 @@ jobs:
     steps:
       - name: Checkout actions repository
         uses: actions/checkout@v4
-        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+#        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         with:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
       - name: Create Git Auth Token
-        if: ${{ inputs.is_repository_protected == true  && needs.ensure-correct-branch.outputs.create_tag  == 'true'}}
+        if: ${{ inputs.is_repository_protected == true }}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
           app-id: 1112653
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
-        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+#        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.target_repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: ${{ inputs.target_repository_folder }}
       - name: use node
-        if: ${{ inputs.node_version != '' && needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+        if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
-        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+#        if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
         run: |
           chmod 700 actions/scripts/update_version.sh
           actions/scripts/update_version.sh
@@ -179,7 +181,7 @@ jobs:
   determine-image-name:
     name: Determine image name based on environment
     needs: push-new-tag # force it to wait on previous step
-    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+#    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
@@ -201,25 +203,43 @@ jobs:
           STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
           UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
 
-  docker-build:
+  docker-build-tag:
     name: Build image
     needs: [tag, determine-image-name] # force it to wait on previous steps
-    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+    if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'true' }}
+#    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
-      image_tag: latest ${{ needs.tag.outputs.new_tag || '' }}
+      image_tag: latest ${{ needs.tag.outputs.new_tag }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
-      ref: ${{ needs.tag.outputs.new_tag || ''}}
+      ref: ${{ needs.tag.outputs.new_tag }}
+    secrets:
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+  docker-build-without-tag:
+    name: Build image
+    needs: [tag, determine-image-name] # force it to wait on previous steps
+    if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'false' }}
+    #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
+    with:
+      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_tag: latest
+      dockerfile: ${{ inputs.dockerfile }}
+      platforms: amd64
+      push_images: 1
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
 
   deploy:
     name: Deploy to ECS
-    needs: docker-build
+    needs: [docker-build-tag, docker-build-without-tag] # force it to wait on previous steps
+    if: ${{ needs.docker-build-tag.result == 'success' || needs.docker-build-without-tag.result == 'success' }}
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service: ${{ inputs.ecs_service }}
