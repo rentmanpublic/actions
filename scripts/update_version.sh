@@ -25,7 +25,7 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   # Write content to the file
   echo "<?php" > "$file"
   echo "" >> "$file"
-  echo "namespace $VERSION_NAMESPACE};" >> "$file"
+  echo "namespace Rentman;" >> "$file"
   echo "" >> "$file"
   echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
   # Make sure the file is updated and display success message

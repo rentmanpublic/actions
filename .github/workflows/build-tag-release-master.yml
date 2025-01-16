@@ -17,11 +17,6 @@ on:
         type: string
         required: false
         default: app/version.php
-      version_namespace:
-        description: The version constant to be updated
-        type: string
-        required: false
-        default: Rentman
       target_repository:
         description: The target repository for the build
         type: string
@@ -194,7 +189,6 @@ jobs:
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
           TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
-          VERSION_NAMESPACE: ${{ inputs.version_namespace }}
           TARGET_REPOSITORY: ${{ inputs.target_repository }}
           PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
