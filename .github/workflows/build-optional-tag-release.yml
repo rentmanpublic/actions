@@ -262,8 +262,11 @@ jobs:
 
   deploy:
     name: Deploy to ECS
-    needs: [docker-build-tag, docker-build-without-tag] # force it to wait on previous steps
-    if: ${{ needs.docker-build-tag.result == 'success' || needs.docker-build-without-tag.result == 'success' }}
+
+#    if: ${{ needs.docker-build-tag.result == 'success' || needs.docker-build-without-tag.result == 'success' }}
+    if: |
+      github.job == 'docker-build-tag' || 
+      github.job == 'docker-build-without-tag'
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service: ${{ inputs.ecs_service }}
