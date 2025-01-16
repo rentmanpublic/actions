@@ -24,7 +24,7 @@ if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   echo "" >> "$file"
   echo "namespace Rentman;" >> "$file"
   echo "" >> "$file"
-  echo "const RM_VERSION = '$GIT_TAG';"  >> "$file"
+  echo "const $VERSION_CONSTANT_NAME = '$GIT_TAG';"  >> "$file"
   # Make sure the file is updated and display success message
   if grep -q "$GIT_TAG" "$file"; then
 
