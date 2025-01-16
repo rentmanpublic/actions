@@ -15,7 +15,7 @@ on:
       version:
         description: The git version we will be deploying
         type: string
-        required: true
+        required: false
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slahs.
         type: string
