@@ -98,7 +98,9 @@ on:
       OAUTH_PUBLIC_KEY:
         required: false
         description: The public key for Oauth authentication
-
+      SENTRY_AUTH_TOKEN:
+        required: false
+        description: The token to authenticate in Sentry
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -235,6 +237,7 @@ jobs:
       TRANSLATIONS_SECRET: ${{ secrets.RENTMAN_TRANSLATION_SERVER_SECRET }}
       OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
       OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   deploy:
     name: Deploy to ECS
