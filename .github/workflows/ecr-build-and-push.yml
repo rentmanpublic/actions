@@ -133,10 +133,11 @@ jobs:
             echo "No secret to download translations"
             exit 1
           fi
-          echo "Downloading translations"
+          echo "-----Downloading translations-----"
           wget -S --post-data "cache=1&secret=${{secrets.TRANSLATIONS_SECRET}}&type=translations&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/locales-${{inputs.ecs_service}}-${{inputs.version}} https://translations.rentman.net/index.php
           unzip -o /tmp/locales-${{inputs.ecs_service}}-${{inputs.version}} -d ${{ inputs.translations_directory }}
           chmod -R a+r ${{ inputs.translations_directory }}
+          echo "-----Translations done-----"
      # Setup docker buildx
       - name: Set up Docker Buildx
         id: buildx
