@@ -85,11 +85,11 @@ jobs:
   ensure-correct-branch:
     name: Check current branch
     outputs:
-      create_tag: ${{ steps.early-exit.outputs.create_tag }}
+      create_tag: ${{ steps.early_exit.outputs.create_tag }}
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     runs-on: ubuntu-latest
     steps:
-      - id: early-exit
+      - id: early_exit
         name: Checking chosen cluster and branch
         run: |
           if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
@@ -112,7 +112,7 @@ jobs:
   tag:
     name: Generating new GitHub tag
     needs: [ensure-correct-branch, ensure-app-ci-key]
-    if: ${{ needs.ensure-correct-branch.outputs.create_tag }} == 'true'
+    if: needs.ensure-correct-branch.outputs.create_tag == 'true'
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
