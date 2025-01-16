@@ -181,7 +181,30 @@ jobs:
   determine-image-name:
     name: Determine image name based on environment
     needs: push-new-tag # force it to wait on previous step
-    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+#    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
+    outputs:
+      image_name: ${{ steps.image_name.outputs.image_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+      - name: Check which image name to use based on enviroment
+        id: image_name
+        run: |
+          chmod 700 actions/scripts/determine_image_name.sh
+          actions/scripts/determine_image_name.sh
+        env:
+          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
+  determine-image-name-wihout-tag:
+    name: Determine image name based on environment
+    #    if: ${{ always() }} # This ensures this jobs runs even if push-new-tag is skipped, due to build without tagging
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
