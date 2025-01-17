@@ -188,7 +188,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [determine-image-name, determine-version] # force it to wait on previous steps
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@feature/get-version-script-for-release-branch
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest
