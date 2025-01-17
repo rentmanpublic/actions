@@ -22,6 +22,8 @@ if [ "$PROGRAMMING_LANGUAGE" == "php" ]; then
     ls -l
   fi
 
+  echo > "$file"
+
   # Write content to the file
   {
     echo "<?php"
