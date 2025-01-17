@@ -67,6 +67,16 @@ on:
         type: boolean
         default: false
         required: false
+      programming_language:
+        description: 'Choose the programming language of the project'
+        required: false
+        type: string
+        default: 'php'
+      node_version:
+        description: 'Choose the node version to use for node projects'
+        required: false
+        type: string
+        default: ''
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -143,6 +153,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
           ref: feature/get-version-script-for-release-branch
+      - name: use node
+        if: ${{ inputs.node_version != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
       - name: Get the version number based on the programming language
         id: version
         run: |
