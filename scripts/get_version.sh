@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apt install grep
+grep --version
 
 if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
