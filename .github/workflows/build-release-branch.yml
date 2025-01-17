@@ -20,6 +20,10 @@ on:
         description: The target repository for the build
         type: string
         required: true
+      branch:
+        description: The branch to build from
+        type: string
+        required: true
       target_repository_folder:
         description: The folder in which the target repository will be checked out
         type: string
@@ -136,7 +140,7 @@ jobs:
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
-      ref: latest
+      ref: ${{ inputs.branch }}
       translations_client: ${{ inputs.translations_client }}
       translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
