@@ -1,9 +1,10 @@
-name: 'Yamllint GitHub Actions'
+name: 'Linting'
 on:
   - pull_request
+
 jobs:
-  yamllint:
-    name: 'Yamllint'
+  lint:
+    name: 'Yaml lint'
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
@@ -11,3 +12,5 @@ jobs:
       - name: 'Yamllint'
         run: |
           yamllint .
+      - name: 'Bash lint'
+        run: shellcheck scripts/*
