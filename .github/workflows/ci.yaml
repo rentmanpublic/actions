@@ -9,8 +9,5 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@v4
       - name: 'Yamllint'
-        uses: karancode/yamllint-github-action@v3
-        with:
-          yamllint_file_or_dir: '.github/workflows'
-          yamllint_strict: true
-          yamllint_comment: false
+        run: |
+          yamllint .
