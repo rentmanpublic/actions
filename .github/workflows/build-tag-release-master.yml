@@ -3,7 +3,7 @@ name: Build, Tag and Release Master
 on:
   workflow_call:
     inputs:
-        name:
+      name:
         description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
         type: string
         required: true
