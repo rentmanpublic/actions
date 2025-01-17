@@ -148,7 +148,7 @@ jobs:
     name: Determine the version number based on versioning file
     needs: ensure-correct-branch
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      determined-version: ${{ steps.determine-version.outputs.determined-version }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout actions repository
@@ -177,7 +177,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
       - name: Get the version number based on the programming language
-        id: version
+        id: determine-version
         run: |
           chmod 700 actions/scripts/get_version.sh
           actions/scripts/get_version.sh
@@ -194,7 +194,7 @@ jobs:
       image_tag: latest
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
-      version: $${{ needs.determine-version.outputs.version }}
+      version: $${{ needs.determine-version.outputs.determined-version }}
       push_images: 1
       ref: ${{ inputs.branch }}
       translations_client: ${{ inputs.translations_client }}
