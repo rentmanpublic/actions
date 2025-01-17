@@ -77,6 +77,11 @@ on:
         required: false
         type: string
         default: ''
+      is_repository_protected:
+        description: Set this to true if authentication is required
+        type: boolean
+        default: false
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -153,6 +158,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
           ref: feature/get-version-script-for-release-branch
+      - name: Create Git Auth Token
+        if: ${{ inputs.is_repository_protected == true }}
+        uses: actions/create-github-app-token@v1
+        id: github-token
+        with:
+          app-id: 1112653
+          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
+      - name: Checkout to release repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.target_repository }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
+          path: ${{ inputs.target_repository_folder }}
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
