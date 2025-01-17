@@ -4,7 +4,7 @@ grep --version
 
 if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
-  version=grep -o '\const RM_VERSION = "[^"]*"' $file
+  version=awk -F' = ' '/\const RM_VERSION/ {gsub(/["; ]/, "", $2); print $2}' $file
   echo "version=$version" >> $GITHUB_OUTPUT
 fi
 
