@@ -1,0 +1,153 @@
+name: Build and Release (no tag)
+
+on:
+  workflow_call:
+    inputs:
+      deploy_confirmation:
+        description: 'Outcome if user manually confirmed the start of the deploy script'
+        type: string
+        required: true
+      version_file_path:
+        description: The path to the php version file
+        type: string
+        required: false
+        default: app/version.php
+      target_repository:
+        description: The target repository for the build
+        type: string
+        required: true
+      target_repository_folder:
+        description: The folder in which the target repository will be checked out
+        type: string
+        required: false
+        default: target_repository_folder
+      production_image_name:
+        description: The name the production docker image. This is also the name of the ECR repository (optional)
+        type: string
+      staging_image_name:
+        description: The name the staging docker image. This is also the name of the ECR repository (optional)
+        type: string
+      util_image_name:
+        description: The name the util docker image. This is also the name of the ECR repository (optional)
+        type: string
+      dockerfile:
+        description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
+        type: string
+        required: true
+      ecs_service:
+        description: 'ECS service name'
+        type: string
+        required: true
+      ecs_cluster:
+        description: 'ECS cluster name'
+        type: string
+        required: true
+      ecs_region:
+        description: 'AWS region'
+        type: string
+        required: true
+      programming_language:
+        description: 'Choose the programming language of the project'
+        required: false
+        type: string
+        default: 'php'
+      node_version:
+        description: 'Choose the node version to use for node projects'
+        required: false
+        type: string
+        default: ''
+      is_repository_protected:
+        description: Set this to true if authentication is required
+        type: boolean
+        default: false
+        required: false
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+        description: AWS access key id
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+        description: AWS access key secret
+      RENTMAN_CI_APP_SECRET_KEY:
+        required: false
+        description: Github token generation secret key
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ensure-correct-branch:
+    name: Check current branch
+    if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: early_exit
+        name: Checking chosen cluster and branch
+        run: |
+          if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
+            echo "Releasing to RM4G can only be done from master branch"
+            exit 1
+          fi
+
+  ensure-app-ci-key:
+    name: Check if app-ci-key is provided for protected repositories
+    runs-on: ubuntu-latest
+    steps:
+      - id: ensure-app-ci-key
+        run: |
+          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
+            exit 1
+          fi
+
+  determine-image-name:
+    name: Determine image name based on environment
+    needs: ensure-correct-branch
+    outputs:
+      image_name: ${{ steps.image_name.outputs.image_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+      - name: Check which image name to use based on enviroment
+        id: image_name
+        run: |
+          chmod 700 actions/scripts/determine_image_name.sh
+          actions/scripts/determine_image_name.sh
+        env:
+          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
+
+  docker-build:
+    name: Build image
+    needs: determine-image-name # force it to wait on previous steps
+    if: ${{ needs.ensure-correct-branch.outputs.create_tag  == 'false' }}
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
+    with:
+      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_tag: latest
+      dockerfile: ${{ inputs.dockerfile }}
+      platforms: amd64
+      push_images: 1
+    secrets:
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+  deploy:
+    name: Deploy to ECS
+    needs: docker-build-tag
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+    with:
+      service: ${{ inputs.ecs_service }}
+      cluster: ${{ inputs.ecs_cluster }}
+      region:  ${{ inputs.ecs_region }}
+    secrets:
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
