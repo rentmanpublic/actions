@@ -3,6 +3,10 @@ name: Build, Tag and Release Master
 on:
   workflow_call:
     inputs:
+      name:
+        description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
+        type: string
+        required: true
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
@@ -106,7 +110,7 @@ on:
         description: Composer authentication key
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ name }}
   cancel-in-progress: false
 
 jobs:
