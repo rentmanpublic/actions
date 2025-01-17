@@ -110,7 +110,7 @@ on:
         description: Composer authentication key
 
 concurrency:
-  group: ${{ name }}
+  group: ${{ inputs.name }}
   cancel-in-progress: false
 
 jobs:
