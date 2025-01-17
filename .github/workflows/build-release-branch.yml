@@ -11,6 +11,10 @@ on:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
         required: true
+      target_version:
+        description: 'The version of that needs to be deployed'
+        required: true
+        type: string
       version_file_path:
         description: The path to the php version file
         type: string
@@ -50,18 +54,16 @@ on:
         description: 'AWS region'
         type: string
         required: true
-      programming_language:
-        description: 'Choose the programming language of the project'
-        required: false
+      translations_client:
+        description: The translation client for which we get the translations, can be 'backend' or 'core'
         type: string
-        default: 'php'
-      node_version:
-        description: 'Choose the node version to use for node projects'
         required: false
+      translations_directory:
+        description: The directory the translations will be written to for the build to use
         type: string
-        default: ''
-      is_repository_protected:
-        description: Set this to true if authentication is required
+        required: false
+      oauth_enabled:
+        description: This build uses oauth authentication and requires the configuration of keys
         type: boolean
         default: false
         required: false
@@ -72,9 +74,19 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
         description: AWS access key secret
-      RENTMAN_CI_APP_SECRET_KEY:
+      RENTMAN_TRANSLATION_SERVER_SECRET:
         required: false
-        description: Github token generation secret key
+        description: Secret to access the translation server
+      OAUTH_PRIVATE_KEY:
+        required: false
+        description: The private key for Oauth authentication
+      OAUTH_PUBLIC_KEY:
+        required: false
+        description: The public key for Oauth authentication
+      COMPOSER_AUTH:
+        required: false
+        description: Composer authentication key
+
 
 concurrency:
   group: ${{ name }}
@@ -94,20 +106,9 @@ jobs:
             exit 1
           fi
 
-  ensure-app-ci-key:
-    name: Check if app-ci-key is provided for protected repositories
-    runs-on: ubuntu-latest
-    steps:
-      - id: ensure-app-ci-key
-        run: |
-          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
-            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
-            exit 1
-          fi
-
   determine-image-name:
     name: Determine image name based on environment
-    needs: [ensure-correct-branch, ensure-app-ci-key]
+    needs: ensure-correct-branch
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
@@ -139,9 +140,17 @@ jobs:
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
+      ref: latest
+      translations_client: ${{ inputs.translations_client }}
+      translations_directory: ${{ inputs.translations_directory }}
+      oauth_enabled: ${{ inputs.oauth_enabled }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TRANSLATIONS_SECRET: ${{ secrets.RENTMAN_TRANSLATION_SERVER_SECRET }}
+      OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
+      OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
+      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
 
   deploy:
     name: Deploy to ECS
