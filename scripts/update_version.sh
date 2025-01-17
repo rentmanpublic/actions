@@ -1,6 +1,5 @@
 #!/bin/bash
 
-rm -rf "$test/"*
 git config --global user.name BuildBot
 git config --global user.email buildbot@rentman.nl
 
