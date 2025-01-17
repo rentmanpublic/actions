@@ -1,0 +1,16 @@
+name: 'Yamllint GitHub Actions'
+on:
+  - pull_request
+jobs:
+  yamllint:
+    name: 'Yamllint'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+      - name: 'Yamllint'
+        uses: karancode/yamllint-github-action@v3
+        with:
+          yamllint_file_or_dir: '.github/workflows'
+          yamllint_strict: true
+          yamllint_comment: false
