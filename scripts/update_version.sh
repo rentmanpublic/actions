@@ -22,11 +22,10 @@ if [ "$PROGRAMMING_LANGUAGE" == "php" ]; then
     ls -l
   fi
 
-  echo > "$file"
+  echo "<?php" > "$file"
 
   # Write content to the file
   {
-    echo "<?php"
     echo ""
     echo "namespace Rentman;"
     echo ""
