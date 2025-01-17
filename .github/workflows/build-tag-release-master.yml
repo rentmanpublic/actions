@@ -101,6 +101,9 @@ on:
       SENTRY_AUTH_TOKEN:
         required: false
         description: The token to authenticate in Sentry
+      COMPOSER_AUTH:
+        required: false
+        description: Composer authentication key
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -238,6 +241,7 @@ jobs:
       OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
       OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
 
   deploy:
     name: Deploy to ECS

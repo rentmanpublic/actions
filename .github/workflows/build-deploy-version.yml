@@ -79,6 +79,9 @@ on:
       OAUTH_PUBLIC_KEY:
         required: false
         description: The public key for Oauth authentication
+      COMPOSER_AUTH:
+        required: false
+        description: Composer authentication key
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -147,6 +150,7 @@ jobs:
       TRANSLATIONS_SECRET: ${{ secrets.RENTMAN_TRANSLATION_SERVER_SECRET }}
       OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
       OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
+      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
 
   deploy:
       name: Deploy to ECS
