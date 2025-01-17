@@ -1,5 +1,7 @@
 #!/bin/bash
 
+apt install grep
+
 if [ $PROGRAMMING_LANGUAGE == "php" ]; then
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
   version=grep -o '\const RM_VERSION = "[^"]*"' $file
