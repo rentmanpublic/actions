@@ -142,6 +142,7 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: feature/get-version-script-for-release-branch
       - name: Get the version number based on the programming language
         id: version
         run: |
