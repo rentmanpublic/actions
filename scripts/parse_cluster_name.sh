@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [[ -z "$ENVIRONMENT_NAME" ]]; then
     echo "No environment provided"
     exit 1;
@@ -23,9 +25,9 @@ case "$ENVIRONMENT_NAME_LOWER" in
 esac
 
 OUTPUT=$(aws resourcegroupstaggingapi get-resources \
-  --region $REGION \
+  --region "$REGION" \
   --resource-type-filters ecs:cluster \
-  --tag-filters Key=ClusterName,Values=$TAG_NAME \
+  --tag-filters Key=ClusterName,Values="$TAG_NAME" \
   --query "ResourceTagMappingList[*].ResourceARN" \
   --output text | awk -F'/' '{print $2}')
 
@@ -35,4 +37,4 @@ if [[ -z "$OUTPUT" ]]; then
     exit 1
 fi
 echo "cluster_name=$OUTPUT"
-echo "cluster_name=$OUTPUT" >> $GITHUB_ENV
+echo "cluster_name=$OUTPUT" >> "$GITHUB_ENV"
