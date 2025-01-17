@@ -1,7 +1,7 @@
 #!/bin/bash
 
-git config user.name BuildBot
-git config user.email buildbot@rentman.nl
+git config --global user.name BuildBot
+git config --global user.email buildbot@rentman.nl
 
 if [[ -z "$GIT_TAG" ]]; then
     echo "No tag provided"
