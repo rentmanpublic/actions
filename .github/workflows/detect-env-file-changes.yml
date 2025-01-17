@@ -28,6 +28,6 @@ jobs:
         with:
           message: |
             ⚠️ **env files changed** ⚠️
-            
+
             One or more `.env` files have been modified in this PR.
             Please make sure to do the same modifications in ECS.

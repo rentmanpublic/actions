@@ -1,5 +1,3 @@
-
-
 name: ECR build and push script
 on:
   workflow_call:

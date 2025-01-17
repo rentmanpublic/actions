@@ -6,18 +6,18 @@ on:
         value: ${{jobs.qa-build-register-status.outputs.sha}}
     inputs:
       github_action_payload:
-         required: true
-         description: The github action payload
-         type: string
+        required: true
+        description: The github action payload
+        type: string
       stage:
         required: true
         default: building
         type: string
         description: one of [building, built, failed]
     secrets:
-       build_reporting_secret:
-         description: The secret used for the toolsendpoint to register QA builds
-         required: true
+      build_reporting_secret:
+        description: The secret used for the toolsendpoint to register QA builds
+        required: true
 
 jobs:
 
@@ -48,4 +48,3 @@ jobs:
           fi
           echo "Storing SHA as output: ${sha}"
           echo "::set-output name=sha::$(echo $sha)"
-        

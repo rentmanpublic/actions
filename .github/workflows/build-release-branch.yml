@@ -159,7 +159,7 @@ jobs:
     with:
       service: ${{ inputs.ecs_service }}
       cluster: ${{ inputs.ecs_cluster }}
-      region:  ${{ inputs.ecs_region }}
+      region: ${{ inputs.ecs_region }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
