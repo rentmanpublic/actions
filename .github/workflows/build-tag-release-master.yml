@@ -83,6 +83,11 @@ on:
         type: boolean
         default: false
         required: false
+      build_args:
+        description: build argument key-value pairs seperated by space (ex "key1=value1 key2=value2 key3=value3")
+        type: string
+        default: ''
+        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -238,6 +243,7 @@ jobs:
       translations_client: ${{ inputs.translations_client }}
       translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
+      build_args: ${{ inputs.build_args }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
