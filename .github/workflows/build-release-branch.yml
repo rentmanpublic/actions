@@ -67,21 +67,6 @@ on:
         type: boolean
         default: false
         required: false
-      programming_language:
-        description: 'Choose the programming language of the project'
-        required: false
-        type: string
-        default: 'php'
-      node_version:
-        description: 'Choose the node version to use for node projects'
-        required: false
-        type: string
-        default: ''
-      is_repository_protected:
-        description: Set this to true if authentication is required
-        type: boolean
-        default: false
-        required: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -167,35 +152,6 @@ jobs:
           tag_prefix: ''
           default_bump: ${{ inputs.version_bump }}
           dry_run: true
-
-
-#      - name: Create Git Auth Token
-#        if: ${{ inputs.is_repository_protected == true }}
-#        uses: actions/create-github-app-token@v1
-#        id: github-token
-#        with:
-#          app-id: 1112653
-#          private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
-#      - name: Checkout to release repo
-#        uses: actions/checkout@v4
-#        with:
-#          repository: ${{ inputs.target_repository }}
-#          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
-#          path: ${{ inputs.target_repository_folder }}
-#      - name: use node
-#        if: ${{ inputs.node_version != '' }}
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: ${{ inputs.node_version }}
-#      - name: Get the version number based on the programming language
-#        id: determine-version
-#        run: |
-#          chmod 700 actions/scripts/get_version.sh
-#          actions/scripts/get_version.sh
-#        env:
-#          TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
-#          VERSION_FILE_PATH: ${{ inputs.version_file_path }}
-#          PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
   docker-build:
     name: Build image
