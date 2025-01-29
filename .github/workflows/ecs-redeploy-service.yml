@@ -47,12 +47,13 @@ jobs:
           REGION: ${{ inputs.region }}
       - name: fetch service name
         run: |
-            chmod 700 actions/scripts/get_service_name_by_tag.sh
-            actions/scripts/get_service_name_by_tag.sh
+          chmod 700 actions/scripts/get_service_name_by_tag.sh
+          actions/scripts/get_service_name_by_tag.sh
         env:
-            REGION: ${{ inputs.region }}
-            CLUSTER_NAME: ${{ env.cluster_name }}
-            SERVICE_NAME: ${{ inputs.service }}
+          REGION: ${{ inputs.region }}
+          CLUSTER_NAME: ${{ env.cluster_name }}
+          SERVICE_NAME: ${{ inputs.service }}
+
       - name: Redeploy ECS service
         run: |
           echo "cluster_name = ${{ env.cluster_name }}"
