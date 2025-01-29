@@ -35,11 +35,10 @@ esac
 
 OUTPUT=$(aws resourcegroupstaggingapi get-resources \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
   --resource-type-filters ecs:service \
   --tag-filters Key=Service,Values="$TAG_NAME" \
   --query "ResourceTagMappingList[*].ResourceARN" \
-  --output text | awk -F'/' '{print $NF}')
+  --output text | grep "/$CLUSTER_NAME/" | awk -F'/' '{print $NF}')
 
 # Handle case when no output is returned
 if [[ -z "$OUTPUT" ]]; then
