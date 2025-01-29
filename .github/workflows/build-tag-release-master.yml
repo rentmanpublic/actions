@@ -114,6 +114,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  print-out-master:
+    name: Print out master branch
+    runs-on: ubuntu-latest
+    steps:
+      - id: print-out-master
+        run: Echo "Master branch"
+
   ensure-master-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
