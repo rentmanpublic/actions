@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: print-out-master
-        run: Echo "Master branch"
+        run: echo "Master branch"
 
   ensure-master-branch:
     name: Check current branch
