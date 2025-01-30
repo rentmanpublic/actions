@@ -37,4 +37,4 @@ if [[ -z "$OUTPUT" ]]; then
     exit 1
 fi
 echo "cluster_name=$OUTPUT"
-echo "cluster_name=$OUTPUT" >> "$GITHUB_ENV"
+echo "cluster_name=$OUTPUT" >> "$GITHUB_OUTPUT"
