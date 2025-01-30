@@ -2,11 +2,15 @@ name: Redeploy ECS service
 on:
   workflow_call:
     inputs:
-      service:
+      service_name:
         description: 'ECS service name'
         type: 'string'
-        required: true
-      cluster:
+        required: false
+      service_tag:
+        description: 'The tag given to the service'
+        type: 'string'
+        required: false
+      cluster_name:
         description: 'ECS cluster name'
         type: 'string'
         required: true
@@ -53,6 +57,7 @@ jobs:
           REGION: ${{ inputs.region }}
           CLUSTER_NAME: ${{ env.cluster_name }}
           SERVICE_NAME: ${{ inputs.service }}
+          SERVICE_TAG: ${{ inputs.service_tag }}
 
       - name: Redeploy ECS service
         run: |
