@@ -11,10 +11,14 @@ on:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
         required: true
-      ecs_service:
+      ecs_service_tag:
+        description: 'The tag given to the service, used to find the service name'
+        type: string
+        required: false
+      ecs_service_name:
         description: 'ECS service name'
         type: string
-        required: true
+        required: false
       ecs_cluster:
         description: 'ECS cluster name'
         type: string
@@ -41,7 +45,8 @@ jobs:
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service }}
+      service_tag: ${{ inputs.ecs_service_tag }}
+      service_name: ${{ inputs.ecs_service_name }}
       cluster_name: ${{ inputs.ecs_cluster }}
       region: ${{ inputs.ecs_region }}
     secrets:

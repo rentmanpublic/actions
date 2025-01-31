@@ -21,29 +21,29 @@ on:
         type: string
         required: false
         default: app/version.php
-      target_repository:
+      git_target_repository:
         description: The target repository for the build
         type: string
         required: true
-      target_repository_folder:
+      git_target_repository_folder:
         description: The folder in which the target repository will be checked out
         type: string
         required: false
         default: target_repository_folder
-      production_image_name:
+      ecr_production_image_name:
         description: The name the production docker image. This is also the name of the ECR repository (optional)
         type: string
-      staging_image_name:
+      ecr_staging_image_name:
         description: The name the staging docker image. This is also the name of the ECR repository (optional)
         type: string
-      util_image_name:
+      ecr_util_image_name:
         description: The name the util docker image. This is also the name of the ECR repository (optional)
         type: string
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
         required: true
-      ecs_service:
+      ecs_service_name:
         description: 'ECS service name'
         type: string
         required: false
@@ -190,9 +190,9 @@ jobs:
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.target_repository }}
+          repository: ${{ inputs.git_target_repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
-          path: ${{ inputs.target_repository_folder }}
+          path: ${{ inputs.git_target_repository_folder }}
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
@@ -205,9 +205,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
-          TARGET_REPOSITORY_FOLDER: ${{ inputs.target_repository_folder }}
+          TARGET_REPOSITORY_FOLDER: ${{ inputs.git_target_repository_folder }}
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
-          TARGET_REPOSITORY: ${{ inputs.target_repository }}
+          TARGET_REPOSITORY: ${{ inputs.git_target_repository }}
           PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
   determine-image-name:
@@ -230,9 +230,9 @@ jobs:
           actions/scripts/determine_image_name.sh
         env:
           SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
-          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
-          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
-          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.ecr_production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.ecr_staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
   docker-build:
     name: Build image
     needs: [tag, determine-image-name]
@@ -262,7 +262,7 @@ jobs:
     needs: docker-build
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service }}
+      service_name: ${{ inputs.ecs_service_name }}
       service_tag: ${{ inputs.ecs_service_tag }}
       cluster_name: ${{ inputs.ecs_cluster }}
       region: ${{ inputs.ecs_region }}
