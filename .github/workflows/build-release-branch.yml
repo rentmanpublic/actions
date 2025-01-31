@@ -130,15 +130,38 @@ jobs:
           STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
           UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
 
+  determine-version:
+    name: Determine the version number based on versioning file
+    needs: ensure-correct-branch
+    outputs:
+      current_tag: ${{ steps.tag_version.outputs.previous_tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: rentmanpublic/actions
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: actions
+          ref: master
+      - name: Fetch most current tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_prefix: ''
+          dry_run: true
+
   docker-build:
     name: Build image
-    needs: determine-image-name # force it to wait on previous steps
+    needs: [determine-image-name, determine-version] # force it to wait on previous steps
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
+      version: ${{ needs.determine-version.outputs.current_tag }}
       push_images: 1
       ref: ${{ inputs.branch }}
       translations_client: ${{ inputs.translations_client }}
