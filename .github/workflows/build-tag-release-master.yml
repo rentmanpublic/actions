@@ -7,11 +7,6 @@ on:
         description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
         type: string
         required: true
-      workflow_version:
-        description: 'The version of GH actions being used'
-        type: string
-        required: false
-        default: 'master'
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
@@ -140,6 +135,7 @@ jobs:
         run: |
           if [ "${{ github.ref }}" != "refs/heads/master" ] && [ "${{ inputs.ecs_cluster }}" != "Staging" ]; then
             echo "Error this can only run on master branch"
+          exit 1;
           fi
 
   ensure-app-ci-key:
@@ -241,7 +237,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [tag, determine-image-name]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@${{inputs.workflow_version}}
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
@@ -265,7 +261,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@${{inputs.workflow_version}}
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service_name: ${{ inputs.ecs_service }}
       service_tag: ${{ inputs.ecs_service_tag }}

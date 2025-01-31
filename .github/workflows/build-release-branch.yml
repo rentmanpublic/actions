@@ -7,11 +7,6 @@ on:
         description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
         type: string
         required: true
-      workflow_version:
-        description: 'The version of GH actions being used'
-        type: string
-        required: false
-        default: 'master'
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
@@ -138,7 +133,7 @@ jobs:
   docker-build:
     name: Build image
     needs: determine-image-name # force it to wait on previous steps
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@${{ inputs.workflow_version }}
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest
@@ -160,7 +155,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@${{ inputs.workflow_version }}
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       service_name: ${{ inputs.ecs_service }}
       cluster_name: ${{ inputs.ecs_cluster }}
