@@ -57,7 +57,7 @@ jobs:
           actions/scripts/get_service_name_by_tag.sh
         env:
           REGION: ${{ inputs.region }}
-          CLUSTER_NAME: ${{ env.cluster_name }}
+          CLUSTER_NAME: ${{ steps.cluster_name.outputs.cluster_name }}
           SERVICE_NAME: ${{ inputs.service }}
           SERVICE_TAG: ${{ inputs.service_tag }}
 
