@@ -233,7 +233,6 @@ jobs:
           PRODUCTION_IMAGE_NAME: ${{ inputs.ecr_production_image_name }}
           STAGING_IMAGE_NAME: ${{ inputs.ecr_staging_image_name }}
           UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
-
   docker-build:
     name: Build image
     needs: [tag, determine-image-name]
