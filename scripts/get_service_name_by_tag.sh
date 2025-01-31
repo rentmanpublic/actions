@@ -13,19 +13,32 @@ if [[ -z "$SERVICE_TAG" && "$SERVICE_NAME" ]]; then
     exit 0
 else
   echo "Getting service tag $SERVICE_TAG"
-  SERVICE_NAME_FOUND=$(aws resourcegroupstaggingapi get-resources \
+  SERVICE_NAMES=$(aws resourcegroupstaggingapi get-resources \
     --region "$REGION" \
     --resource-type-filters ecs:service \
     --tag-filters Key=Service,Values="$SERVICE_TAG" \
     --query "ResourceTagMappingList[*].ResourceARN" \
-    --output text | grep "/$CLUSTER_NAME/" | awk -F'/' '{print $NF}')
+    --output json)
 
-echo "Output of aws request: $SERVICE_NAME_FOUND"
-    # Handle case when no output is returned
-    if [[ -z "$SERVICE_NAME_FOUND" ]]; then
-        echo "No service found with the tag: $SERVICE_TAG"
-        exit 1
-    fi
-    echo "service_name=$SERVICE_NAME_FOUND"
-    echo "service_name=$SERVICE_NAME_FOUND" >> "$GITHUB_OUTPUT"
+  echo "Output of request: $SERVICE_NAMES"
+
+  if [[ -z "$SERVICE_NAMES" ]]; then
+      echo "No service found with the tag: $SERVICE_TAG"
+      exit 1
+  fi
+
+  for service in ${SERVICE_NAMES}; do
+      if [[ "$service" == *"service/$CLUSTER_NAME"* ]]; then
+          SERVICE_NAME_FOUND=$(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')
+      fi
+  done
+
+  echo "Output of aws request: $SERVICE_NAME_FOUND"
+  # Handle case when no output is returned
+  if [[ -z "$SERVICE_NAME_FOUND" ]]; then
+      echo "No service found with the tag: $SERVICE_TAG"
+      exit 1
+  fi
+  echo "service_name=$SERVICE_NAME_FOUND"
+  echo "service_name=$SERVICE_NAME_FOUND" >> "$GITHUB_OUTPUT"
 fi

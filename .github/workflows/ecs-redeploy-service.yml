@@ -36,6 +36,7 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: fix/naming-conventions
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

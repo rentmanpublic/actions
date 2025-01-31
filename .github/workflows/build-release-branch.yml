@@ -7,11 +7,6 @@ on:
         description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
         type: string
         required: true
-      workflow_version:
-        description: 'The version of GH actions being used'
-        type: string
-        required: false
-        default: 'master'
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
@@ -21,36 +16,40 @@ on:
         type: string
         required: false
         default: app/version.php
-      target_repository:
+      git_target_repository:
         description: The target repository for the build
         type: string
         required: true
-      branch:
+      git_branch:
         description: The branch to build from
         type: string
         required: true
-      target_repository_folder:
+      git_target_repository_folder:
         description: The folder in which the target repository will be checked out
         type: string
         required: false
         default: target_repository_folder
-      production_image_name:
+      ecr_production_image_name:
         description: The name the production docker image. This is also the name of the ECR repository (optional)
         type: string
-      staging_image_name:
+      ecr_staging_image_name:
         description: The name the staging docker image. This is also the name of the ECR repository (optional)
         type: string
-      util_image_name:
+      ecr_util_image_name:
         description: The name the util docker image. This is also the name of the ECR repository (optional)
         type: string
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
         required: true
-      ecs_service:
+      ecs_service_tag:
+        description: 'The tag given to the service, used to find the service name'
+        type: string
+        required: false
+      ecs_service_name:
         description: 'ECS service name'
         type: string
-        required: true
+        required: false
       ecs_cluster:
         description: 'ECS cluster name'
         type: string
@@ -131,21 +130,21 @@ jobs:
           actions/scripts/determine_image_name.sh
         env:
           SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
-          PRODUCTION_IMAGE_NAME: ${{ inputs.production_image_name }}
-          STAGING_IMAGE_NAME: ${{ inputs.staging_image_name }}
-          UTIL_IMAGE_NAME: ${{ inputs.util_image_name }}
+          PRODUCTION_IMAGE_NAME: ${{ inputs.ecr_production_image_name }}
+          STAGING_IMAGE_NAME: ${{ inputs.ecr_staging_image_name }}
+          UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
 
   docker-build:
     name: Build image
     needs: determine-image-name # force it to wait on previous steps
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@${{ inputs.workflow_version }}
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
-      ref: ${{ inputs.branch }}
+      ref: ${{ inputs.git_branch }}
       translations_client: ${{ inputs.translations_client }}
       translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
@@ -160,9 +159,10 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@${{ inputs.workflow_version }}
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service }}
+      service_name: ${{ inputs.ecs_service_name }}
+      service_tag: ${{ inputs.ecs_service_tag }}
       cluster_name: ${{ inputs.ecs_cluster }}
       region: ${{ inputs.ecs_region }}
     secrets:
