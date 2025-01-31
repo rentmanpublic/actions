@@ -43,7 +43,7 @@ on:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
         required: true
-      ecs_service:
+      ecs_service_name:
         description: 'ECS service name'
         type: string
         required: false
@@ -263,7 +263,7 @@ jobs:
     needs: docker-build
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service }}
+      service_name: ${{ inputs.ecs_service_name }}
       service_tag: ${{ inputs.ecs_service_tag }}
       cluster_name: ${{ inputs.ecs_cluster }}
       region: ${{ inputs.ecs_region }}
