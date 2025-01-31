@@ -16,7 +16,7 @@ else
   SERVICE_NAME_FOUND=$(aws resourcegroupstaggingapi get-resources \
     --region "$REGION" \
     --resource-type-filters ecs:service \
-    --tag-filters Key=Service,Values=$SERVICE_TAG \
+    --tag-filters Key=Service,Values="$SERVICE_TAG" \
     --query "ResourceTagMappingList[*].ResourceARN" \
     --output text | grep "/$CLUSTER_NAME/" | awk -F'/' '{print $NF}')
 
