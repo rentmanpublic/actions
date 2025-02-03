@@ -147,7 +147,7 @@ jobs:
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
       image_tag: latest ${{ inputs.target_version  }}
-      version: ${{ needs.tag.outputs.new_tag }}
+      version: ${{ inputs.target_version }}
       dockerfile: ${{ inputs.dockerfile }}
       platforms: amd64
       push_images: 1
