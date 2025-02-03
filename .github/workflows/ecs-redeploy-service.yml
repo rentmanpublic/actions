@@ -58,7 +58,7 @@ jobs:
         env:
           REGION: ${{ inputs.region }}
           CLUSTER_NAME: ${{ steps.cluster_name.outputs.cluster_name }}
-          SERVICE_NAME: ${{ inputs.service }}
+          SERVICE_NAME: ${{ inputs.service_name }}
           SERVICE_TAG: ${{ inputs.service_tag }}
 
       - name: Redeploy ECS service
