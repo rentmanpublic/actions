@@ -135,7 +135,7 @@ jobs:
           UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
 
   determine-version:
-    name: Determine the version number based on versioning file
+    name: Determine the current version number
     needs: determine-image-name
     outputs:
       current_tag: ${{ steps.tag_version.outputs.previous_tag }}
