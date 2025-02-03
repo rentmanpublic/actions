@@ -136,7 +136,7 @@ jobs:
 
   determine-version:
     name: Determine the version number based on versioning file
-    needs: ensure-correct-branch
+    needs: determine-image-name
     outputs:
       current_tag: ${{ steps.tag_version.outputs.previous_tag }}
     runs-on: ubuntu-latest
