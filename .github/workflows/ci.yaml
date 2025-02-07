@@ -4,7 +4,6 @@ on:
 
 jobs:
   lint:
-    name: 'Yaml lint'
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
