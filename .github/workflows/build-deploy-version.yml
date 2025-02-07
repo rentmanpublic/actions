@@ -3,10 +3,6 @@ name: Build and Deploy Specific Version
 on:
   workflow_call:
     inputs:
-      name:
-        description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
-        type: string
-        required: true
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
@@ -20,44 +16,11 @@ on:
         type: string
         required: false
         default: app/version.php
-      git_target_repository:
-        description: The target repository for the build
-        type: string
-        required: true
-      git_target_repository_folder:
-        description: The folder in which the target repository will be checked out
-        type: string
-        required: false
-        default: target_repository_folder
-      ecr_production_image_name:
-        description: The name the production docker image. This is also the name of the ECR repository (optional)
-        type: string
-      ecr_staging_image_name:
-        description: The name the staging docker image. This is also the name of the ECR repository (optional)
-        type: string
-      ecr_util_image_name:
-        description: The name the util docker image. This is also the name of the ECR repository (optional)
-        type: string
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
-        required: true
-      ecs_service_tag:
-        description: 'The tag given to the service, used to find the service name'
-        type: string
         required: false
-      ecs_service_name:
-        description: 'ECS service name'
-        type: string
-        required: false
-      ecs_cluster:
-        description: 'ECS cluster name'
-        type: string
-        required: true
-      ecs_region:
-        description: 'AWS region'
-        type: string
-        required: true
+        default: 'deployment/dockerfiles/code/Dockerfile'
       translations_client:
         description: The translation client for which we get the translations, can be 'backend' or 'core'
         type: string
@@ -95,7 +58,7 @@ on:
         description: The token to authenticate in Sentry
 
 concurrency:
-  group: ${{ inputs.name }}
+  group: ${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -115,8 +78,8 @@ jobs:
           fi
           echo "status=success" >> $GITHUB_OUTPUT
 
-  determine-image-name:
-    name: Determine image name based on environment
+  determine-ecr-image-name:
+    name: Determine ecr image name based on environment
     needs: ensure-master-branch
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
@@ -134,15 +97,12 @@ jobs:
           chmod 700 actions/scripts/determine_image_name.sh
           actions/scripts/determine_image_name.sh
         env:
-          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
-          PRODUCTION_IMAGE_NAME: ${{ inputs.ecr_production_image_name }}
-          STAGING_IMAGE_NAME: ${{ inputs.ecr_staging_image_name }}
-          UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
+          ENVIRONMENT: ${{ inputs.environment }}
 
   docker-build:
     name: Build image
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
-    needs: determine-image-name
+    needs: determine-ecr-image-name
     if: needs.ensure-master-branch.outputs.status == 'success'
     with:
       image_name: ${{ needs.determine-image-name.outputs.image_name }}
@@ -169,10 +129,7 @@ jobs:
     needs: docker-build
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service_name }}
-      service_tag: ${{ inputs.ecs_service_tag }}
-      cluster_name: ${{ inputs.ecs_cluster }}
-      region: ${{ inputs.ecs_region }}
+      environment: ${{ inputs.environment }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

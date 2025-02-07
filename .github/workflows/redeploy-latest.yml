@@ -3,30 +3,15 @@ name: Redeploy Latest Version in AWS without Building
 on:
   workflow_call:
     inputs:
-      name:
-        description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
-        type: string
-        required: true
       deploy_confirmation:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
         required: true
-      ecs_service_tag:
-        description: 'The tag given to the service, used to find the service name'
-        type: string
-        required: false
-      ecs_service_name:
-        description: 'ECS service name'
-        type: string
-        required: false
-      ecs_cluster:
-        description: 'ECS cluster name'
-        type: string
+      environment:
+        description: 'The environment to build and deploy to'
         required: true
-      ecs_region:
-        description: 'AWS region'
         type: string
-        required: true
+        default: 'staging'
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -36,19 +21,16 @@ on:
         description: AWS access key secret
 
 concurrency:
-  group: ${{ inputs.name }}
+  group: ${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
   deploy:
     name: Redeploy latest image available on ECR to ECS
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@feature/multi-region-deploy
     with:
-      service_tag: ${{ inputs.ecs_service_tag }}
-      service_name: ${{ inputs.ecs_service_name }}
-      cluster_name: ${{ inputs.ecs_cluster }}
-      region: ${{ inputs.ecs_region }}
+      environment: ${{ inputs.environment }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -2,22 +2,11 @@ name: Redeploy ECS service
 on:
   workflow_call:
     inputs:
-      service_name:
-        description: 'ECS service name'
-        type: 'string'
-        required: false
-      service_tag:
-        description: 'The tag given to the service'
-        type: 'string'
-        required: false
-      cluster_name:
-        description: 'ECS cluster name'
-        type: 'string'
+      environment:
+        description: 'The environment to redeploy to'
         required: true
-      region:
-        description: 'AWS region'
-        type: 'string'
-        required: true
+        type: string
+        default: 'staging'
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -36,32 +25,18 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+          ref: master
+      - name: Checkout to release repo
+        uses: actions/checkout@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.region }}
-      - name: fetch cluster name
-        id: cluster_name
+          repository: ${{ github.repository }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
+          path: target_repository_folder
+      - name: Redeploy ECS services
         run: |
-          chmod 700 actions/scripts/parse_cluster_name.sh
-          actions/scripts/parse_cluster_name.sh
+          chmod 700 actions/scripts/redeploy_services.sh
+          actions/scripts/redeploy_services.sh
         env:
-          ENVIRONMENT_NAME: ${{ inputs.cluster_name }}
-          REGION: ${{ inputs.region }}
-      - name: fetch service name
-        id: service_name
-        run: |
-          chmod 700 actions/scripts/get_service_name_by_tag.sh
-          actions/scripts/get_service_name_by_tag.sh
-        env:
-          REGION: ${{ inputs.region }}
-          CLUSTER_NAME: ${{ steps.cluster_name.outputs.cluster_name }}
-          SERVICE_NAME: ${{ inputs.service_name }}
-          SERVICE_TAG: ${{ inputs.service_tag }}
-
-      - name: Redeploy ECS service
-        run: |
-          echo "cluster_name = ${{ steps.cluster_name.outputs.cluster_name }}"
-          aws ecs update-service --cluster ${{ steps.cluster_name.outputs.cluster_name }} --service ${{ steps.service_name.outputs.service_name }} --region ${{ inputs.region }} --force-new-deployment
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ENVIRONMENT: ${{ inputs.environment }}
