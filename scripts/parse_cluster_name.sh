@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Expects the following environment variables to be set before execution:
+# - ENVIRONMENT_NAME
+# - REGION
+# - TAG_NAME
+
+
+set -euxo pipefail
 
 if [[ -z "$ENVIRONMENT_NAME" ]]; then
     echo "No environment provided"

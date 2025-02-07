@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Expects the following environment variables to be set before execution:
+# - SERVICE_TAG
+# - SERVICE_NAME
+# - REGION
+# - CLUSTER_NAME
+
+set -euxo pipefail
 
 if [[ -z "$SERVICE_NAME" && -z "$SERVICE_TAG" ]]; then
     echo "No service name or service tag provided. At least one of the two should be given"

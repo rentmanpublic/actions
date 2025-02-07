@@ -1,4 +1,13 @@
 #!/bin/bash
+# Expects the following environment variables to be set before execution:
+# - SELECTED_ECS_CLUSTER
+#
+# And one of:
+# - PRODUCTION_IMAGE_NAME
+# - STAGING_IMAGE_NAME
+# - UTIL_IMAGE_NAME
+
+set -euxo pipefail
 
 if [ "$SELECTED_ECS_CLUSTER" == "RM4G" ]; then
   if [ -n "$PRODUCTION_IMAGE_NAME" ]; then

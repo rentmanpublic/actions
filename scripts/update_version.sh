@@ -1,4 +1,11 @@
 #!/bin/bash
+# Expects the following environment variables to be set before execution:
+# - GIT_TAG
+# - PROGRAMMING_LANGUAGE
+# - TARGET_REPOSITORY_FOLDER
+# - VERSION_FILE_PATH
+
+set -euxo pipefail
 
 git config --global user.name BuildBot
 git config --global user.email buildbot@rentman.nl
