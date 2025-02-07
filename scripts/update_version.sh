@@ -60,12 +60,8 @@ if [ "$PROGRAMMING_LANGUAGE" == "typescript" ]; then
   cd ./"$TARGET_REPOSITORY_FOLDER" || exit
 
   # Write content to the file
+  npm version "$GIT_TAG"
 
-  # find and replace "version" in package.json
-  sed -i "/version/c\\  \"version\": \"$GIT_TAG\"," package.json
-
-  # update package log without installing node_modules
-  npm i --package-lock-only
   # git add files
   git add package.json package-lock.json
 
