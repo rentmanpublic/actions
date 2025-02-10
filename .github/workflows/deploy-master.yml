@@ -87,11 +87,15 @@ on:
         required: false
         description: Composer authentication key
 
+# We choose to NOT cancel in progress actions when a new one is kicked off
+# this is because we don't want deploys interfering with each other.
+# So when one person is running a deployment, nobody else can do one at the same time
 concurrency:
   group: ${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
+  # We need to validate this here because we can't let the type checking do that for us (as in workflow_dispatch input types)
   check-environment:
     name: Check if proper environment is passed
     runs-on: ubuntu-latest
@@ -116,7 +120,7 @@ jobs:
         name: Checking if current branch is master
         run: |
           if [ "${{ github.ref }}" != "refs/heads/master" ] && [ "${{ inputs.ecs_cluster }}" != "Staging" ]; then
-            echo "Error this can only run on master branch"
+            echo "Error this can only run on master branch and deploy to a non-staging cluster"
           exit 1;
           fi
 
@@ -127,7 +131,7 @@ jobs:
       - id: ensure-app-ci-key
         run: |
           if [ ${{ inputs.is_branch_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
-            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
+            echo "Error: secrets.RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
   tag:
