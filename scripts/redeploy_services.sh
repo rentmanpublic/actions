@@ -106,5 +106,5 @@ for region_name in ${regions}; do
 
   # redeploy service
   echo "Redeploying service $service_name_found in cluster $cluster_name_from_aws in region $region_name"
-  aws ecs update-service --cluster $cluster_name_from_aws --service $service_name_found --region $region_name --force-new-deployment
+  aws ecs update-service --cluster "$cluster_name_from_aws" --service "$service_name_found" --region "$region_name" --force-new-deployment
 done
