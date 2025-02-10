@@ -105,6 +105,8 @@ jobs:
           exit 1
           fi
 
+  # we need to ensure we are on master here manually because workflow_call events can't filter on which branch
+  # they are called
   ensure-master-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}

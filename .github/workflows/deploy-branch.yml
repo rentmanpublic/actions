@@ -75,7 +75,7 @@ jobs:
           echo "Invalid environment. Only 'staging' or 'production' are allowed."
           exit 1
           fi
-  ensure-correct-branch:
+  ensure-valid-deployment:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     runs-on: ubuntu-latest
@@ -84,13 +84,13 @@ jobs:
         name: Checking chosen cluster and branch
         run: |
           if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            echo "Releasing to RM4G can only be done from master branch"
+            echo "Deploying to RM4G can only be done from master branch"
             exit 1
           fi
 
   determine-ecr-image-name:
     name: Determine ecr image name based on environment
-    needs: [check-environment, ensure-correct-branch]
+    needs: [check-environment, ensure-valid-deployment]
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
