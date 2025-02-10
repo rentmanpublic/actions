@@ -1,32 +1,27 @@
 #!/bin/bash
 # Expects the following environment variables to be set before execution:
-# - SELECTED_ECS_CLUSTER
-#
-# And one of:
-# - PRODUCTION_IMAGE_NAME
-# - STAGING_IMAGE_NAME
-# - UTIL_IMAGE_NAME
+# - $ENVIRONMENT
 
 set -euxo pipefail
 
-if [ "$SELECTED_ECS_CLUSTER" == "RM4G" ]; then
-  if [ -n "$PRODUCTION_IMAGE_NAME" ]; then
-    echo "image_name=$PRODUCTION_IMAGE_NAME" >> "$GITHUB_OUTPUT"
-    exit 0
-  fi
-
-elif [ "$SELECTED_ECS_CLUSTER" == "Staging" ]; then
-  if [ -n "$STAGING_IMAGE_NAME" ]; then
-    echo "image_name=$STAGING_IMAGE_NAME" >> "$GITHUB_OUTPUT"
-    exit 0
-  fi
-
-elif [ "$SELECTED_ECS_CLUSTER" == "Util" ]; then
-  if [ -n "$UTIL_IMAGE_NAME" ]; then
-    echo "image_name=$UTIL_IMAGE_NAME" >> "$GITHUB_OUTPUT"
-    exit 0
-  fi
+if [[ -z "$ENVIRONMENT" ]]; then
+    echo "No environment provided"
+    exit 1;
 fi
 
-echo "Invalid image name config for environment $SELECTED_ECS_CLUSTER"
-exit 1
+deployment_file_path="target_repository_folder/deployment/workflows/config.json"
+chmod 700 $deployment_file_path
+
+if [[ ! -f $deployment_file_path ]]; then
+  echo "No deployment config json file in deployment/workflow folder of project repository."
+  exit 1
+fi
+
+service_name=$(jq -r ".environments.$ENVIRONMENT.ecrImageName" $deployment_file_path)
+
+if [[ -z "$service_name" ]]; then
+    echo "No ECR image name provided for environment $ENVIRONMENT in the config file: deployment/workflows/config.json"
+    exit 1;
+fi
+
+echo "image_name=$service_name" >> "$GITHUB_OUTPUT"

@@ -1,75 +1,49 @@
-name: Build, Tag and Release Master
+name: Release
+
+# This workflow builds, and deploys the master branch and tags it in git (this is used for a production release)
+# After that the image is build and pushed to ECR (tagged as latest and with the new git tag as a version)
+# And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
 on:
   workflow_call:
     inputs:
-      name:
-        description: 'The name of the workflow, used to ensure concurrency of 1 job per repository'
-        type: string
-        required: true
       deploy_confirmation:
-        description: 'Outcome if user manually confirmed the start of the deploy script'
+        description: Outcome if user manually confirmed the start of the deploy script
         type: string
         required: true
-      version_bump:
-        description: 'Choose version bump granularity'
+      environment:
+        description: The environment to build and deploy to, can be either staging or production
         required: true
+        type: string
+      version_bump:
+        description: Choose version bump granularity for the release, can be major, minor or patch
+        required: false
         type: string
         default: 'minor'
       version_file_path:
-        description: The path to the php version file
+        description: The path to the php version file if needed
         type: string
         required: false
         default: app/version.php
-      git_target_repository:
-        description: The target repository for the build
-        type: string
-        required: true
-      git_target_repository_folder:
-        description: The folder in which the target repository will be checked out
-        type: string
-        required: false
-        default: target_repository_folder
-      ecr_production_image_name:
-        description: The name the production docker image. This is also the name of the ECR repository (optional)
-        type: string
-      ecr_staging_image_name:
-        description: The name the staging docker image. This is also the name of the ECR repository (optional)
-        type: string
-      ecr_util_image_name:
-        description: The name the util docker image. This is also the name of the ECR repository (optional)
-        type: string
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string
-        required: true
-      ecs_service_name:
-        description: 'ECS service name'
-        type: string
         required: false
-      ecs_service_tag:
-        description: 'The tag given to the service, used to find the service name'
-        type: string
-        required: false
-      ecs_cluster:
-        description: 'ECS cluster name'
-        type: string
-        required: true
-      ecs_region:
-        description: 'AWS region'
-        type: string
-        required: true
+        default: 'deployment/dockerfiles/code/Dockerfile'
       programming_language:
-        description: 'Choose the programming language of the project'
+        description: Choose the programming language of the project
         required: false
         type: string
         default: 'php'
       node_version:
-        description: 'Choose the node version to use for node projects'
+        description: Choose the node version to use for node projects
         required: false
         type: string
         default: ''
-      is_repository_protected:
+      # When branch protection is enabled on master in a repository we can add the Rentman CI
+      # bot as an exception where only the bot is allowed to push to master. We use this flag
+      # to indicate that we should use the bots authentication token to push.
+      is_branch_protected:
         description: Set this to true if authentication is required
         type: boolean
         default: false
@@ -113,18 +87,30 @@ on:
         required: false
         description: Composer authentication key
 
+# We choose to NOT cancel in progress actions when a new one is kicked off
+# this is because we don't want deploys interfering with each other.
+# So when one person is running a deployment, nobody else can do one at the same time
 concurrency:
-  group: ${{ inputs.name }}
+  group: ${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
-  print-out-master:
-    name: Print out master branch
+  # We need to validate this here because we can't let the type checking do that for us (as in workflow_dispatch input types)
+  check-environment:
+    name: Check if proper environment is passed
     runs-on: ubuntu-latest
     steps:
-      - id: print-out-master
-        run: echo "Master branch"
+      - name: Only allow staging and production
+        run: |
+          if [[ "${{ inputs.environment }}" == "staging" || "${{ inputs.environment }}" == "production" ]]; then
+          echo "Running workflow with environment: ${{ inputs.environment }}."
+          else
+          echo "Invalid environment. Only 'staging' or 'production' are allowed."
+          exit 1
+          fi
 
+  # we need to ensure we are on master here manually because workflow_call events can't filter on which branch
+  # they are called
   ensure-master-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
@@ -134,23 +120,23 @@ jobs:
         name: Checking if current branch is master
         run: |
           if [ "${{ github.ref }}" != "refs/heads/master" ] && [ "${{ inputs.ecs_cluster }}" != "Staging" ]; then
-            echo "Error this can only run on master branch"
+            echo "Error this can only run on master branch and deploy to a non-staging cluster"
           exit 1;
           fi
 
   ensure-app-ci-key:
-    name: Check if app-ci-key is provided for protected repositories
+    name: Check if app-ci-key is provided for protected branches
     runs-on: ubuntu-latest
     steps:
       - id: ensure-app-ci-key
         run: |
-          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
-            echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
+          if [ ${{ inputs.is_branch_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+            echo "Error: secrets.RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
   tag:
     name: Generating new GitHub tag
-    needs: [ensure-master-branch, ensure-app-ci-key]
+    needs: [ensure-master-branch, ensure-app-ci-key, check-environment]
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -180,8 +166,9 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: master
       - name: Create Git Auth Token
-        if: ${{ inputs.is_repository_protected == true }}
+        if: ${{ inputs.is_branch_protected == true }}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
@@ -190,9 +177,10 @@ jobs:
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.git_target_repository }}
+          repository: ${{ github.repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
-          path: ${{ inputs.git_target_repository_folder }}
+          path: target_repository_folder
+          ref: ${{ github.ref }}
       - name: use node
         if: ${{ inputs.node_version != '' }}
         uses: actions/setup-node@v4
@@ -205,13 +193,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
-          TARGET_REPOSITORY_FOLDER: ${{ inputs.git_target_repository_folder }}
+          TARGET_REPOSITORY_FOLDER: target_repository_folder
           VERSION_FILE_PATH: ${{ inputs.version_file_path }}
-          TARGET_REPOSITORY: ${{ inputs.git_target_repository }}
+          TARGET_REPOSITORY: ${{ github.repository }}
           PROGRAMMING_LANGUAGE: ${{ inputs.programming_language }}
 
-  determine-image-name:
-    name: Determine image name based on environment
+  determine-ecr-image-name:
+    name: Determine ecr image name based on environment
     needs: push-new-tag
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
@@ -223,22 +211,27 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: master
+      - name: Checkout to release repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: target_repository_folder
+          ref: master
       - name: Check which image name to use based on enviroment
         id: image_name
         run: |
           chmod 700 actions/scripts/determine_image_name.sh
           actions/scripts/determine_image_name.sh
         env:
-          SELECTED_ECS_CLUSTER: ${{ inputs.ecs_cluster }}
-          PRODUCTION_IMAGE_NAME: ${{ inputs.ecr_production_image_name }}
-          STAGING_IMAGE_NAME: ${{ inputs.ecr_staging_image_name }}
-          UTIL_IMAGE_NAME: ${{ inputs.ecr_util_image_name }}
+          ENVIRONMENT: ${{ inputs.environment }}
   docker-build:
     name: Build image
-    needs: [tag, determine-image-name]
+    needs: [tag, determine-ecr-image-name]
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
     with:
-      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
       version: ${{ needs.tag.outputs.new_tag }}
       dockerfile: ${{ inputs.dockerfile }}
@@ -262,10 +255,7 @@ jobs:
     needs: docker-build
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
-      service_name: ${{ inputs.ecs_service_name }}
-      service_tag: ${{ inputs.ecs_service_tag }}
-      cluster_name: ${{ inputs.ecs_cluster }}
-      region: ${{ inputs.ecs_region }}
+      environment: ${{ inputs.environment }}
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
