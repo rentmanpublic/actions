@@ -40,6 +40,9 @@ on:
         required: false
         type: string
         default: ''
+      # When branch protection is enabled on master in a repository we can add the Rentman CI
+      # bot as an exception where only the bot is allowed to push to master. We use this flag
+      # to indicate that we should use the bots authentication token to push.
       is_branch_protected:
         description: Set this to true if authentication is required
         type: boolean
