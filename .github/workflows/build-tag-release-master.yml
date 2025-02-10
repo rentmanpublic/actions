@@ -11,7 +11,6 @@ on:
         description: 'The environment to build and deploy to'
         required: true
         type: string
-        default: 'staging'
       version_bump:
         description: 'Choose version bump granularity'
         required: false
@@ -199,13 +198,14 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: feature/multi-region-deploy
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: target_repository_folder
-          ref: feature/multi-region-deploy
+          ref: master
       - name: Check which image name to use based on enviroment
         id: image_name
         run: |

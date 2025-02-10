@@ -7,6 +7,10 @@ on:
         description: 'Outcome if user manually confirmed the start of the deploy script'
         type: string
         required: true
+      environment:
+        description: 'The environment to build and deploy to'
+        required: true
+        type: string
       target_version:
         description: 'The version of that needs to be deployed'
         required: true
@@ -77,10 +81,21 @@ jobs:
             exit 1
           fi
           echo "status=success" >> $GITHUB_OUTPUT
-
+  check-environment:
+    name: Check if proper environment is passed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only allow staging and production
+        run: |
+          if [[ "${{ inputs.environment }}" == "staging" || "${{ inputs.environment }}" == "production" ]]; then
+          echo "Running workflow with environment: ${{ inputs.environment }}."
+          else
+          echo "Invalid environment. Only 'staging' or 'production' are allowed."
+          exit 1
+          fi
   determine-ecr-image-name:
     name: Determine ecr image name based on environment
-    needs: ensure-master-branch
+    needs: [check-environment, ensure-master-branch]
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
@@ -91,6 +106,14 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
+          ref: feature/multi-region-deploy
+      - name: Checkout to release repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
+          path: target_repository_folder
+          ref: master
       - id: image_name
         name: Check which image name to use based on enviroment
         run: |
@@ -105,7 +128,7 @@ jobs:
     needs: determine-ecr-image-name
     if: needs.ensure-master-branch.outputs.status == 'success'
     with:
-      image_name: ${{ needs.determine-image-name.outputs.image_name }}
+      image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ inputs.target_version  }}
       version: ${{ inputs.target_version }}
       dockerfile: ${{ inputs.dockerfile }}
@@ -127,7 +150,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@feature/multi-region-deploy
     with:
       environment: ${{ inputs.environment }}
     secrets:

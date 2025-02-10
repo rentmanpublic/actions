@@ -1,11 +1,6 @@
 #!/bin/bash
 # Expects the following environment variables to be set before execution:
-# - SELECTED_ECS_CLUSTER
-#
-# And one of:
-# - PRODUCTION_IMAGE_NAME
-# - STAGING_IMAGE_NAME
-# - UTIL_IMAGE_NAME
+# - $ENVIRONMENT
 
 set -euxo pipefail
 

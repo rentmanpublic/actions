@@ -4,15 +4,13 @@
 # - ENVIRONMENT
 
 set -euxo pipefail
-#Set AWS credentials for this shell script run
-export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
 if [[ -z "$ENVIRONMENT" ]]; then
     echo "No environment provided"
     exit 1;
 fi
 
+# Check if there is a deployment config in the project repository
 deployment_file_path="target_repository_folder/deployment/workflows/config.json"
 chmod 700 $deployment_file_path
 
@@ -21,9 +19,7 @@ if [[ ! -f $deployment_file_path ]]; then
   exit 1
 fi
 
-
-deployment_config=$(cat $deployment_file_path)
-
+# Get all AWS ecs deployment information from the deployment config based on environment
 service_tag=$(jq -r ".ecsServiceTag" $deployment_file_path)
 service_name=$(jq -r ".environments.$ENVIRONMENT.ecsImageName" $deployment_file_path)
 cluster_name=$(jq -r ".environments.$ENVIRONMENT.ecsCluster" $deployment_file_path)
@@ -31,13 +27,13 @@ regions=$(jq -r ".environments.$ENVIRONMENT.ecsRegions[]" $deployment_file_path)
 
 lowercase_cluster_name=$(echo "$cluster_name" | tr '[:upper:]' '[:lower:]')
 
-echo "environment: $ENVIRONMENT"
-echo "cluster_name: $cluster_name, $lowercase_cluster_name"
-echo "service_name: $service_name"
-echo "service_tag: $service_tag"
-echo "regions: $regions"
+# Determine if the config is valid
+if [[ -z $cluster_name || -z $regions ]]; then
+  echo "There is no clister or region configured for the environment $ENVIRONMENT"
+  exit 1
+fi
 
-# Map tag values to cluster names
+# Map tag values to cluster names in AWS
 case "$lowercase_cluster_name" in
     "rm4g")
         cluster_tag="MainCluster"
@@ -54,10 +50,9 @@ case "$lowercase_cluster_name" in
         ;;
 esac
 
-## for loop per region
+## Loop through the regions in an environment that need to be deployed to
 for region_name in ${regions}; do
   # Set AWS config region
-  echo "Looping over region $region_name"
   export AWS_DEFAULT_REGION=$region_name
 
   # get cluster name
@@ -75,7 +70,6 @@ for region_name in ${regions}; do
   fi
 
   # get service name by tag if needed, else use service name
-
   if [[ -z "$service_name" && -z "$service_tag" ]]; then
       echo "No service name or service tag provided. At least one of the two should be given"
       exit 1
@@ -89,8 +83,6 @@ for region_name in ${regions}; do
       --tag-filters Key=Service,Values="$service_tag" \
       --query "ResourceTagMappingList[*].ResourceARN" \
       --output json)
-
-    echo "Output of request: $service_names for region: $region_name in cluster: $lowercase_cluster_name"
 
     if [[ -z "$service_names" ]]; then
         echo "No service found with the tag: $service_tag"

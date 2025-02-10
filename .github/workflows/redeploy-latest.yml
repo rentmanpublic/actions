@@ -11,7 +11,6 @@ on:
         description: 'The environment to build and deploy to'
         required: true
         type: string
-        default: 'staging'
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -25,8 +24,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check-environment:
+    name: Check if proper environment is passed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only allow staging and production
+        run: |
+          if [[ "${{ inputs.environment }}" == "staging" || "${{ inputs.environment }}" == "production" ]]; then
+          echo "Running workflow with environment: ${{ inputs.environment }}."
+          else
+          echo "Invalid environment. Only 'staging' or 'production' are allowed."
+          exit 1
+          fi
   deploy:
     name: Redeploy latest image available on ECR to ECS
+    needs: check-environment
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@feature/multi-region-deploy
     with:
