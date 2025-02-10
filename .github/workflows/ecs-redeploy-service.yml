@@ -48,7 +48,7 @@ jobs:
           chmod 700 actions/scripts/parse_cluster_name.sh
           actions/scripts/parse_cluster_name.sh
         env:
-          ENVIRONMENT_NAME: ${{ inputs.cluster }}
+          ENVIRONMENT_NAME: ${{ inputs.cluster_name }}
           REGION: ${{ inputs.region }}
       - name: fetch service name
         id: service_name
