@@ -1,25 +1,24 @@
-name: Build and Deploy Specific Version
+name: Deploy Version
+
+# This workflow builds a specific version which is passed as an input, the version is checked agains a git tag
+# On the repository this action is used in, after that the image is build and pushed to ECR (tagged as latest and the version)
+# And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
 on:
   workflow_call:
     inputs:
       deploy_confirmation:
-        description: 'Outcome if user manually confirmed the start of the deploy script'
+        description: Outcome if user manually confirmed the start of the deploy script
         type: string
         required: true
       environment:
-        description: 'The environment to build and deploy to'
+        description: The environment to build and deploy to, can be either staging or production
         required: true
         type: string
       target_version:
         description: 'The version of that needs to be deployed'
         required: true
         type: string
-      version_file_path:
-        description: The path to the php version file
-        type: string
-        required: false
-        default: app/version.php
       dockerfile:
         description: Relative dockerfile to the docker file seen from the repository root. No leading slash.
         type: string

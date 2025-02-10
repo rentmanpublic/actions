@@ -6,7 +6,6 @@ on:
         description: 'The environment to redeploy to'
         required: true
         type: string
-        default: 'staging'
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true

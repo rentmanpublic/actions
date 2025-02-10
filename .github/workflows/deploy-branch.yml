@@ -1,23 +1,22 @@
-name: Build and Release (no tag)
+name: Deploy Branch
+
+# This workflow builds and deploys a specific branch, whichout tagging it in git (can be used for testing on staging)
+# After that the image is build and pushed to ECR (tagged as latest, without a version)
+# And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
 on:
   workflow_call:
     inputs:
       deploy_confirmation:
-        description: 'Outcome if user manually confirmed the start of the deploy script'
+        description: Outcome if user manually confirmed the start of the deploy script
         type: string
         required: true
       environment:
-        description: 'The environment to build and deploy to'
+        description: The environment to build and deploy to, can be either staging or production
         required: true
         type: string
-      version_file_path:
-        description: The path to the php version file
-        type: string
-        required: false
-        default: app/version.php
       git_branch:
-        description: The branch to build from
+        description: The git branch to build from
         type: string
         required: true
       dockerfile:

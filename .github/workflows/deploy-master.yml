@@ -1,23 +1,27 @@
-name: Build, Tag and Release Master
+name: Deploy Master
+
+# This workflow builds, and deploys the master branch and tags it in git (this is used for a production release)
+# After that the image is build and pushed to ECR (tagged as latest and with the new git tag as a version)
+# And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
 on:
   workflow_call:
     inputs:
       deploy_confirmation:
-        description: 'Outcome if user manually confirmed the start of the deploy script'
+        description: Outcome if user manually confirmed the start of the deploy script
         type: string
         required: true
       environment:
-        description: 'The environment to build and deploy to'
+        description: The environment to build and deploy to, can be either staging or production
         required: true
         type: string
       version_bump:
-        description: 'Choose version bump granularity'
+        description: Choose version bump granularity for the release, can be major, minor or patch
         required: false
         type: string
         default: 'minor'
       version_file_path:
-        description: The path to the php version file
+        description: The path to the php version file if needed
         type: string
         required: false
         default: app/version.php
@@ -27,12 +31,12 @@ on:
         required: false
         default: 'deployment/dockerfiles/code/Dockerfile'
       programming_language:
-        description: 'Choose the programming language of the project'
+        description: Choose the programming language of the project
         required: false
         type: string
         default: 'php'
       node_version:
-        description: 'Choose the node version to use for node projects'
+        description: Choose the node version to use for node projects
         required: false
         type: string
         default: ''

@@ -20,7 +20,7 @@ fi
 service_name=$(jq -r ".environments.$ENVIRONMENT.ecrImageName" $deployment_file_path)
 
 if [[ -z "$service_name" ]]; then
-    echo "No ECR image name provided for environment $ENVIRONMENT"
+    echo "No ECR image name provided for environment $ENVIRONMENT in the config file: deployment/workflows/config.json"
     exit 1;
 fi
 
