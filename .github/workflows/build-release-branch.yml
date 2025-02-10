@@ -102,7 +102,7 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
-          ref: feature/multi-region-deploy
+          ref: master
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
@@ -131,7 +131,7 @@ jobs:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
-          ref: feature/multi-region-deploy
+          ref: master
       - name: Fetch most current tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
@@ -166,7 +166,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@feature/multi-region-deploy
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
     with:
       environment: ${{ inputs.environment }}
     secrets:

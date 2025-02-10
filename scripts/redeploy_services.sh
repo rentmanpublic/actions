@@ -29,7 +29,7 @@ lowercase_cluster_name=$(echo "$cluster_name" | tr '[:upper:]' '[:lower:]')
 
 # Determine if the config is valid
 if [[ -z $cluster_name || -z $regions ]]; then
-  echo "There is no clister or region configured for the environment $ENVIRONMENT"
+  echo "There is no cluster or region configured for the environment $ENVIRONMENT"
   exit 1
 fi
 
@@ -56,7 +56,7 @@ for region_name in ${regions}; do
   export AWS_DEFAULT_REGION=$region_name
 
   # get cluster name
-  OUTPUT=$(aws resourcegroupstaggingapi get-resources \
+  cluster_name_from_aws=$(aws resourcegroupstaggingapi get-resources \
     --region "$region_name" \
     --resource-type-filters ecs:cluster \
     --tag-filters Key=ClusterName,Values="$cluster_tag" \
@@ -64,8 +64,8 @@ for region_name in ${regions}; do
     --output text | awk -F'/' '{print $2}')
 
   # Handle case when no output is returned
-  if [[ -z "$OUTPUT" ]]; then
-      echo "No clusters found with the tag: ClusterName=$OUTPUT"
+  if [[ -z "$cluster_name_from_aws" ]]; then
+      echo "No clusters found with the tag: ClusterName=$cluster_tag"
       exit 1
   fi
 
@@ -76,7 +76,7 @@ for region_name in ${regions}; do
   fi
 
   if [[ -n "$service_tag" ]]; then
-    echo "Getting service tag $service_tag"
+    echo "Getting Service name for service tag: $service_tag"
     service_names=$(aws resourcegroupstaggingapi get-resources \
       --region "$region_name" \
       --resource-type-filters ecs:service \
@@ -90,7 +90,7 @@ for region_name in ${regions}; do
     fi
 
     for service in ${service_names}; do
-        if [[ "$service" == *"service/$lowercase_cluster_name"* ]]; then
+        if [[ "$service" == *"service/$cluster_name_from_aws"* ]]; then
             service_name_found=$(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')
         fi
     done
@@ -105,6 +105,6 @@ for region_name in ${regions}; do
   fi
 
   # redeploy service
-  echo "Redeploying service $service_name_found in cluster $lowercase_cluster_name in region $region_name"
-  aws ecs update-service --cluster $lowercase_cluster_name --service $service_name_found --region $region_name --force-new-deployment
+  echo "Redeploying service $service_name_found in cluster $cluster_name_from_aws in region $region_name"
+  aws ecs update-service --cluster $cluster_name_from_aws --service $service_name_found --region $region_name --force-new-deployment
 done

@@ -26,6 +26,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
           ref: master
+
       - name: Checkout to release repo
         uses: actions/checkout@v4
         with:
