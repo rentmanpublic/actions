@@ -40,7 +40,7 @@ on:
         required: false
         type: string
         default: ''
-      is_repository_protected:
+      is_branch_protected:
         description: Set this to true if authentication is required
         type: boolean
         default: false
@@ -116,12 +116,12 @@ jobs:
           fi
 
   ensure-app-ci-key:
-    name: Check if app-ci-key is provided for protected repositories
+    name: Check if app-ci-key is provided for protected branches
     runs-on: ubuntu-latest
     steps:
       - id: ensure-app-ci-key
         run: |
-          if [ ${{ inputs.is_repository_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
+          if [ ${{ inputs.is_branch_protected }} == true ] && [ -z "${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}"  ]; then
             echo "Error: secret.RENTMAN_CI_APP_SECRET_KEY is not defined."
             exit 1
           fi
@@ -159,7 +159,7 @@ jobs:
           path: actions
           ref: master
       - name: Create Git Auth Token
-        if: ${{ inputs.is_repository_protected == true }}
+        if: ${{ inputs.is_branch_protected == true }}
         uses: actions/create-github-app-token@v1
         id: github-token
         with:
