@@ -1,8 +1,8 @@
 ## Github Actions
 
-This repository contains re-usable workflows which can be ran from our repositories.
+This repository contains re-usable workflows which can be run from our repositories.
 
-To implement these workflows in your repository, you need to create a `.github/workflows` folder in the root of your repository and call the corresponding workflow in there
+To implement these workflows in your repository, you need to create a `.github/workflows` folder in the root of your repository and call the corresponding workflow in there.
 
 Next to that you need a config.json file in the deployments/workflows folder of the repository you wish to deploy
 You can find an example of that below.
@@ -59,7 +59,7 @@ For example:
             "name of aws region" Can be multiple #required
           ],
           "ecrImageName": "Name of the ecr image" #required
-          "ecsImageName": "Optional name of the service in ecs if service has no tag" #optional
+          "ecsServiceName": "Optional name of the service in ecs if service has no tag" #optional
         },
        "staging": {
           "ecsCluster": "Name of cluster in aws", #required
@@ -67,7 +67,7 @@ For example:
             "name of aws region" Can be multiple #required
           ],
           "ecrImageName": "Name of the ecr image" #required
-          "ecsImageName": "Optional name of the service in ecs if service has no tag" #optional
+          "ecsServiceName": "Optional name of the service in ecs if service has no tag" #optional
         }
     }
 }

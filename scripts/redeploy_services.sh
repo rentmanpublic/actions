@@ -21,7 +21,7 @@ fi
 
 # Get all AWS ecs deployment information from the deployment config based on environment
 service_tag=$(jq -r ".ecsServiceTag" $deployment_file_path)
-service_name=$(jq -r ".environments.$ENVIRONMENT.ecsImageName" $deployment_file_path)
+service_name=$(jq -r ".environments.$ENVIRONMENT.ecsServiceName" $deployment_file_path)
 cluster_name=$(jq -r ".environments.$ENVIRONMENT.ecsCluster" $deployment_file_path)
 regions=$(jq -r ".environments.$ENVIRONMENT.ecsRegions[]" $deployment_file_path)
 
