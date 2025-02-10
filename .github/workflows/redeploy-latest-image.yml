@@ -1,6 +1,6 @@
 name: Redeploy Latest Image
 
-# This workflow redloys the ecr image tagged as 'latest' to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
+# This workflow redeploys the ecr image tagged as 'latest' to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
 on:
   workflow_call:

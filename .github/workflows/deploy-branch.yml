@@ -1,6 +1,6 @@
 name: Deploy Branch
 
-# This workflow builds and deploys a specific branch, whichout tagging it in git (can be used for testing on staging)
+# This workflow builds and deploys a specific branch, without tagging it in git (can be used for testing on staging)
 # After that the image is build and pushed to ECR (tagged as latest, without a version)
 # And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 

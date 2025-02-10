@@ -1,4 +1,4 @@
-name: Deploy Master
+name: Release
 
 # This workflow builds, and deploys the master branch and tags it in git (this is used for a production release)
 # After that the image is build and pushed to ECR (tagged as latest and with the new git tag as a version)
