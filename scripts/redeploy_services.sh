@@ -70,7 +70,7 @@ for region_name in ${regions}; do
   fi
 
   # get service name by tag if needed, else use service name
-  if [[ -z "$service_name" && -z "$service_tag" ]]; then
+  if [[ -z "$service_name_found" && -z "$service_tag" ]]; then
       echo "No service name or service tag provided. At least one of the two should be given"
       exit 1
   fi
