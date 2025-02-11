@@ -142,7 +142,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [determine-ecr-image-name, determine-version] # force it to wait on previous steps
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@master
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v1
     with:
       image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest
@@ -165,7 +165,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@master
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v1
     with:
       environment: ${{ inputs.environment }}
     secrets:
