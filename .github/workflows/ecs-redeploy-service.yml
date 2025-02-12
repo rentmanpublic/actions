@@ -33,9 +33,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: target_repository_folder
       - name: Redeploy ECS services
-        run: |
-          chmod 700 actions/scripts/redeploy_services.sh
-          actions/scripts/redeploy_services.sh
+        run: actions/scripts/redeploy_services.sh
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

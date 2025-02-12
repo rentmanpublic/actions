@@ -21,12 +21,8 @@ if [ "$PROGRAMMING_LANGUAGE" == "php" ]; then
   # Add .php extension to the filename
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
 
-  echo 'Starting'
   if [ -f "$file" ]; then
-    chmod 700 "$file"
-  else
     echo "File does not exist:"
-    ls -l
   fi
 
   echo "<?php" > "$file"
@@ -56,11 +52,8 @@ if [ "$PROGRAMMING_LANGUAGE" == "typescript" ]; then
 
   file="$TARGET_REPOSITORY_FOLDER/package.json"
 
-  echo 'Starting'
   # make sure we are allowed to change the package.json file
   if [ -f "$file" ]; then
-    chmod 700 "$file"
-  else
     echo "File does not exist:"
   fi
 

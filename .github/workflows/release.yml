@@ -187,9 +187,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
-        run: |
-          chmod 700 actions/scripts/update_version.sh
-          actions/scripts/update_version.sh
+        run: actions/scripts/update_version.sh
         env:
           GITHUB_TOKEN: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           GIT_TAG: ${{ needs.tag.outputs.new_tag }}
@@ -221,9 +219,7 @@ jobs:
           ref: master
       - name: Check which image name to use based on enviroment
         id: image_name
-        run: |
-          chmod 700 actions/scripts/determine_image_name.sh
-          actions/scripts/determine_image_name.sh
+        run: actions/scripts/determine_image_name.sh
         env:
           ENVIRONMENT: ${{ inputs.environment }}
   docker-build:

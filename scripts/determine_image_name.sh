@@ -10,7 +10,6 @@ if [[ -z "$ENVIRONMENT" ]]; then
 fi
 
 deployment_file_path="target_repository_folder/deployment/workflows/config.json"
-chmod 700 $deployment_file_path
 
 if [[ ! -f $deployment_file_path ]]; then
   echo "No deployment config json file in deployment/workflow folder of project repository."
