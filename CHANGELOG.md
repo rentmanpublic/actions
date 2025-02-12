@@ -14,3 +14,7 @@ Initial release
 
 - config.json format changed, we now allow `ecsImageName` to be either a string or an array of strings.
 This was needed for the db-backup-server because that is deployed as 2 different services using the same code.
+
+## v5
+
+- Releasing nodejs based services now works
