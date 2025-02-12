@@ -17,7 +17,7 @@ fi
 
 
 
-if [ "$PROGRAMMING_LANGUAGE" == "php" ]; then
+if [[ "$PROGRAMMING_LANGUAGE" == "php" ]]; then
   # Add .php extension to the filename
   file="$TARGET_REPOSITORY_FOLDER/$VERSION_FILE_PATH"
 
@@ -48,13 +48,13 @@ if [ "$PROGRAMMING_LANGUAGE" == "php" ]; then
   fi
 fi
 
-if [ "$PROGRAMMING_LANGUAGE" == "typescript" ]; then
+if [[ "$PROGRAMMING_LANGUAGE" == "typescript" ]]; then
 
   file="$TARGET_REPOSITORY_FOLDER/package.json"
 
   # make sure we are allowed to change the package.json file
-  if [ -f "$file" ]; then
-    echo "File does not exist:"
+  if [[ ! -f "$file" ]]; then
+    echo "File does not exist: $file"
   fi
 
   cd ./"$TARGET_REPOSITORY_FOLDER" || exit
