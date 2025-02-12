@@ -12,7 +12,6 @@ fi
 
 # Check if there is a deployment config in the project repository
 deployment_file_path="target_repository_folder/deployment/workflows/config.json"
-chmod 700 $deployment_file_path
 
 if [[ ! -f $deployment_file_path ]]; then
   echo "No deployment config json file in deployment/workflow folder of project repository."
@@ -21,7 +20,12 @@ fi
 
 # Get all AWS ecs deployment information from the deployment config based on environment
 service_tag=$(jq -r ".ecsServiceTag" $deployment_file_path)
-service_name_found=$(jq -r ".environments.$ENVIRONMENT.ecsServiceName" $deployment_file_path)
+
+# We use the || to keep this backwards compatible, when the left hand statement fails with an error
+# and exit code 1, it'll try the original statement so we keep this backwards compatible.
+# We redirect the stderr output of the left hand side to /dev/null so we don't see the error logged, which might
+# confuse people even if it doesn't actually impact execution.
+service_names_found=$(jq -r ".environments.$ENVIRONMENT.ecsServiceName[]" $deployment_file_path 2> /dev/null || jq -r ".environments.$ENVIRONMENT.ecsServiceName" $deployment_file_path)
 cluster_name=$(jq -r ".environments.$ENVIRONMENT.ecsCluster" $deployment_file_path)
 regions=$(jq -r ".environments.$ENVIRONMENT.ecsRegions[]" $deployment_file_path)
 
@@ -70,12 +74,13 @@ for region_name in ${regions}; do
   fi
 
   # get service name by tag if needed, else use service name
-  if [[ -z "$service_name_found" && -z "$service_tag" ]]; then
+  if [[ -z "$service_names_found" && -z "$service_tag" ]]; then
       echo "No service name or service tag provided. At least one of the two should be given"
       exit 1
   fi
 
-  if [[ -n "$service_tag" ]]; then
+  if [[ "$service_tag" != "null" ]]; then
+    service_names_found=()
     echo "Getting Service name for service tag: $service_tag"
     service_names=$(aws resourcegroupstaggingapi get-resources \
       --region "$region_name" \
@@ -90,21 +95,24 @@ for region_name in ${regions}; do
     fi
 
     for service in ${service_names}; do
+        # we do some sort of glob matching in this if statement, this relies on the long ARN format
         if [[ "$service" == *"service/$cluster_name_from_aws"* ]]; then
-            service_name_found=$(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')
+            service_names_found+=("$(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')")
         fi
     done
 
     # Handle case when no output is returned
-    if [[ -z "$service_name_found" ]]; then
+    if [[ -z "${service_names_found[*]}" ]]; then
         echo "No service found with the tag: $service_tag"
         exit 1
     fi
 
-    echo "Found service with name $service_name_found"
+    echo "Found service with name $service_names_found"
   fi
 
-  # redeploy service
-  echo "Redeploying service $service_name_found in cluster $cluster_name_from_aws in region $region_name"
-  aws ecs update-service --cluster "$cluster_name_from_aws" --service "$service_name_found" --region "$region_name" --force-new-deployment
+  for service in ${service_names_found}; do
+    # redeploy service
+    echo "Redeploying service $service in cluster $cluster_name_from_aws in region $region_name"
+    aws ecs update-service --cluster "$cluster_name_from_aws" --service "$service" --region "$region_name" --force-new-deployment
+  done
 done

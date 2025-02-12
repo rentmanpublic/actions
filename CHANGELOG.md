@@ -12,5 +12,5 @@ Initial release
 
 ## v4
 
-- BREAKING: config.json format changed, we now expect an array of service names if no service tag is provided. 
+- config.json format changed, we now allow `ecsImageName` to be either a string or an array of strings.
 This was needed for the db-backup-server because that is deployed as 2 different services using the same code.
