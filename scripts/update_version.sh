@@ -60,12 +60,10 @@ if [[ "$PROGRAMMING_LANGUAGE" == "typescript" ]]; then
   cd ./"$TARGET_REPOSITORY_FOLDER" || exit
 
   # Write content to the file
-  npm version "$GIT_TAG"
+  npm version --no-git-tag-version "$GIT_TAG"
 
   # git add files
   git add package.json package-lock.json
-  git status
-  git show HEAD
 
   echo "Package json updated successfully!"
 fi
