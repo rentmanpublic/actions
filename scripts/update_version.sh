@@ -64,6 +64,7 @@ if [[ "$PROGRAMMING_LANGUAGE" == "typescript" ]]; then
 
   # git add files
   git add package.json package-lock.json
+  git status
 
   echo "Package json updated successfully!"
 fi
