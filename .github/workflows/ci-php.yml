@@ -6,11 +6,9 @@ on:
       php_version:
         type: string
         default: 8.3
-        required: true
       vendored_dependencies:
         type: boolean
         default: false
-        required: true
       extensions:
         type: string
         default: memcached intl zip
