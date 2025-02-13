@@ -34,7 +34,7 @@ jobs:
         with:
           php-version: ${{ inputs.php_version }}
           extensions: ${{ inputs.extensions }}
-          tools: psalm, composer
+          tools: psalm
       - name: Install dependencies
         if: ${{ !inputs.vendored_dependencies }}
         run: composer install
@@ -53,7 +53,7 @@ jobs:
         with:
           php-version: ${{ inputs.php_version }}
           extensions: ${{ inputs.extensions }}
-          tools: composer, php-cs-fixer
+          tools: php-cs-fixer
       - name: Install dependencies
         if: ${{ !inputs.vendored_dependencies }}
         run: composer install
