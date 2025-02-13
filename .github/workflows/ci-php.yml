@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      php_version:
+        type: string
+        default: 8.3
+        required: true
+      vendored_dependencies:
+        type: boolean
+        default: false
+        required: true
+      extensions:
+        type: string
+        default: memcached intl zip
+      working_directory:
+        type: string
+        default: app/
+
+    secrets:
+      COMPOSER_AUTH:
+        required: false
+
+jobs:
+  detect-env-file-changes:
+    name: detect-env-file-changes
+    uses: rentmanpublic/actions/.github/workflows/detect-env-file-changes.yml@v5
+  psalm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check-out the repository code
+        uses: actions/checkout@v4
+      - name: Setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          extensions: ${{ inputs.extensions }}
+          tools: psalm composer
+      - name: Install dependencies
+        if: ${{ !inputs.vendored_dependencies }}
+        run: composer install
+        env:
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+      - name: Run psalm
+        working-directory: ${{ inputs.working_directory }}
+        run: psalm --output-format=github
+  code-style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Check-out the repository code
+      - name: Setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php_version }}
+          extensions: ${{ inputs.extensions }}
+          tools: composer php-cs-fixer
+      - name: Install dependencies
+        if: ${{ !inputs.vendored_dependencies }}
+        run: composer install
+        env:
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+      - name: Run PHP-CS-Fixer
+        working-directory: ${{ inputs.working_directory }}
+        run: php-cs-fixer check --config=.php-cs-fixer.php -v --using-cache=no --show-progress=dots
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Check-out the repository code
+      - name: Install dependencies
+        if: ${{ !inputs.vendored_dependencies }}
+        run: composer install
+        env:
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+      - uses: php-actions/phpunit@v3
+        name: Run the unit tests
+        with:
+          configuration: phpunit.xml
+          php_extensions: ${{ inputs.extensions }}
+          version: 10.5.45
+          php_version: ${{ inputs.php_version }}
+          args: --testsuite=full
+          memory_limit: 900M
