@@ -47,4 +47,4 @@ jobs:
              sha="$(jq -r '.sha' processed.json)"
           fi
           echo "Storing SHA as output: ${sha}"
-          echo "::set-output name=sha::$(echo $sha)"
+          echo "sha=${sha}" >> $GITHUB_OUTPUT
