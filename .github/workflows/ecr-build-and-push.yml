@@ -61,6 +61,10 @@ on:
         description: The directory the translations will be written to for the build to use
         type: string
         required: false
+      countries_directory:
+        description: The directory the country data will be written to for the build to use
+        type: string
+        required: false
       oauth_enabled:
         description: This build uses oauth authentication and requires the configuration of keys
         type: boolean
@@ -143,6 +147,26 @@ jobs:
           wget -S --post-data "cache=1&secret=${{secrets.TRANSLATIONS_SECRET}}&type=translations&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/$pathName https://translations.rentman.net/index.php
           unzip -o /tmp/$pathName -d ${{ inputs.translations_directory }}
           chmod -R a+r ${{ inputs.translations_directory }}
+          echo "-----Translations done-----"
+      # Download countries if needed
+      - name: Download translations
+        if: ${{ inputs.translations_client && inputs.countries_directory }}
+        run: |
+          if [ -z "${{secrets.TRANSLATIONS_SECRET}}" ]; then
+            echo "No secret to download translations"
+            exit 1
+          fi
+          if [ -z "${{inputs.version}}" ]; then
+            echo "Version parameter is required to download translations"
+            exit 1
+          fi
+
+          echo "-----Downloading translations-----"
+          pathName="locales-${{ inputs.image_name }}-${{ inputs.version }}"
+          pathName=$(echo "$pathName" | sed 's/\//-/g')
+          wget -S --post-data "cache=1&secret=${{secrets.TRANSLATIONS_SECRET}}&type=countries&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/$pathName https://translations.rentman.net/index.php
+          unzip -o /tmp/$pathName -d ${{ inputs.countries_directory }}
+          chmod -R a+r ${{ inputs.countries_directory }}
           echo "-----Translations done-----"
      # Setup docker buildx
       - name: Set up Docker Buildx
