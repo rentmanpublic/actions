@@ -108,7 +108,7 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: target_repository_folder
-          ref: master
+          ref: ${{ inputs.git_branch }}
       - name: Check which image name to use based on enviroment
         id: image_name
         run: actions/scripts/determine_image_name.sh
