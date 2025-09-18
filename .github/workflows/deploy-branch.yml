@@ -83,8 +83,8 @@ jobs:
       - id: early_exit
         name: Checking chosen cluster and branch
         run: |
-          if [ ${{ inputs.ecs_cluster }} == "RM4G" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            echo "Deploying to RM4G can only be done from master branch"
+          if [ ${{ inputs.environment }} == "production" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
+            echo "Deploying to production can only be done from master branch"
             exit 1
           fi
 
