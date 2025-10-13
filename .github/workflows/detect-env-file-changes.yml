@@ -2,6 +2,12 @@ name: Detect env file changes
 
 on:
   workflow_call:
+    inputs:
+      iac:
+        description: The path to the parameter stack of the service in the infra repo
+        type: string
+        default: 'ECS'
+        required: false
 
 jobs:
   detect-env-file-changes:
@@ -30,4 +36,4 @@ jobs:
             ⚠️ **env files changed** ⚠️
 
             One or more `.env` files have been modified in this PR.
-            Please make sure to do the same modifications in ECS.
+            Please make sure to do the same modifications in ${{ inputs.iac }}
