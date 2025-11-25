@@ -88,6 +88,9 @@ on:
       OAUTH_PUBLIC_KEY:
         required: false
         description: The public key for Oauth authentication
+      NPM_AUTH_TOKEN:
+        required: false
+        description: The NPM authentication token
 jobs:
   build:
     name: Build image
@@ -167,6 +170,7 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
         run: |
           echo "This step will build image ${ECR_REPOSITORY}:${IMAGE_TAG} for platforms: ${{inputs.platforms}}"
 
@@ -224,7 +228,7 @@ jobs:
             done
 
             # Construct command
-            command="docker buildx build --build-arg COMPOSER_AUTH --build-arg SENTRY_AUTH_TOKEN ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
+            command="docker buildx build --build-arg NPM_AUTH_TOKEN=$NPM_AUTH_TOKEN --build-arg COMPOSER_AUTH --build-arg SENTRY_AUTH_TOKEN ${input_build_args} --push ${tags_command} --platform "linux/${platform}" -f "${GITHUB_WORKSPACE}/${{inputs.dockerfile}}" "${dockerfile_context}""
 
             # Output what the plan is
             echo

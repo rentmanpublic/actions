@@ -240,7 +240,6 @@ jobs:
       translations_client: ${{ inputs.translations_client }}
       translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
-      build_args: "NPM_TOKEN=${{ secrets.NPM_AUTH_TOKEN }}"
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -249,6 +248,7 @@ jobs:
       OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+      NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
   deploy:
     name: Deploy to ECS
