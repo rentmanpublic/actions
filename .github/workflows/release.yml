@@ -86,6 +86,9 @@ on:
       COMPOSER_AUTH:
         required: false
         description: Composer authentication key
+      NPM_AUTH_TOKEN:
+        required: false
+        description: NPM authentication token
 
 # We choose to NOT cancel in progress actions when a new one is kicked off
 # this is because we don't want deploys interfering with each other.
@@ -237,6 +240,7 @@ jobs:
       translations_client: ${{ inputs.translations_client }}
       translations_directory: ${{ inputs.translations_directory }}
       oauth_enabled: ${{ inputs.oauth_enabled }}
+      build_args: "NPM_TOKEN=${{ secrets.NPM_AUTH_TOKEN }}"
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
