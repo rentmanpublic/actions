@@ -228,7 +228,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [tag, determine-ecr-image-name]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v5
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v9
     with:
       image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
