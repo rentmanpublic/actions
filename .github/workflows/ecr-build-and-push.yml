@@ -61,6 +61,11 @@ on:
         description: The directory the translations will be written to for the build to use
         type: string
         required: false
+      translations_use_cache:
+        description: Whether to use the cached translations or fetch fresh translations
+        type: boolean
+        default: true
+        required: false
       oauth_enabled:
         description: This build uses oauth authentication and requires the configuration of keys
         type: boolean
@@ -141,9 +146,17 @@ jobs:
           fi
 
           echo "-----Downloading translations-----"
+          if [ "${{ inputs.translations_use_cache }}" == "true" ]; then
+            echo "----- USING CACHE -----"
+            USE_CACHE=1
+          else
+            echo "----- NOT USING CACHE -----"
+            USE_CACHE=0
+          fi
+
           pathName="locales-${{ inputs.image_name }}-${{ inputs.version }}"
           pathName=$(echo "$pathName" | sed 's/\//-/g')
-          wget -S --post-data "cache=1&secret=${{secrets.TRANSLATIONS_SECRET}}&type=translations&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/$pathName https://translations.rentman.net/index.php
+          wget -S --post-data "cache=$USE_CACHE&secret=${{secrets.TRANSLATIONS_SECRET}}&type=translations&client=${{inputs.translations_client}}&version=${{inputs.version}}" -O /tmp/$pathName https://translations.rentman.net/index.php
           unzip -o /tmp/$pathName -d ${{ inputs.translations_directory }}
           chmod -R a+r ${{ inputs.translations_directory }}
           echo "-----Translations done-----"
