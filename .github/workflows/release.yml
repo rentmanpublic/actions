@@ -144,10 +144,10 @@ jobs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
       - name: Create new minor version tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
+        uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: ''
@@ -164,7 +164,7 @@ jobs:
       actions: 'read'
     steps:
       - name: Checkout actions repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -172,13 +172,13 @@ jobs:
           ref: master
       - name: Create Git Auth Token
         if: ${{ inputs.is_branch_protected == true }}
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
         id: github-token
         with:
           app-id: 1112653
           private-key: ${{ secrets.RENTMAN_CI_APP_SECRET_KEY }}
       - name: Checkout to release repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: ${{ github.repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
@@ -186,7 +186,7 @@ jobs:
           ref: ${{ github.ref }}
       - name: use node
         if: ${{ inputs.node_version != '' }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: ${{ inputs.node_version }}
       - name: Push new tag to github
@@ -207,14 +207,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout actions repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
           ref: master
       - name: Checkout to release repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -228,7 +228,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [tag, determine-ecr-image-name]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v9
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v12
     with:
       image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
@@ -253,7 +253,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v5
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v12
     with:
       environment: ${{ inputs.environment }}
     secrets:

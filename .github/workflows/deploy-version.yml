@@ -100,14 +100,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout actions repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: rentmanpublic/actions
           token: ${{ secrets.GITHUB_TOKEN }}
           path: actions
           ref: master
       - name: Checkout to release repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
         with:
           repository: ${{ github.repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
@@ -121,7 +121,7 @@ jobs:
 
   docker-build:
     name: Build image
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v5
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v12
     needs: determine-ecr-image-name
     if: needs.ensure-master-branch.outputs.status == 'success'
     with:
@@ -147,7 +147,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v5
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v12
     with:
       environment: ${{ inputs.environment }}
     secrets:
