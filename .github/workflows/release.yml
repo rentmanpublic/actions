@@ -228,7 +228,7 @@ jobs:
   docker-build:
     name: Build image
     needs: [tag, determine-ecr-image-name]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v13
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v14
     with:
       image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
@@ -253,7 +253,7 @@ jobs:
   deploy:
     name: Deploy to ECS
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v13
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v14
     with:
       environment: ${{ inputs.environment }}
     secrets:
@@ -291,7 +291,7 @@ jobs:
     name: Build image
     continue-on-error: true
     needs: [tag, determine-ecr-image-name-stagingv2]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v13
+    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v14
     with:
       image_name: ${{ needs.determine-ecr-image-name-stagingv2.outputs.image_name }}
       image_tag: latest ${{ needs.tag.outputs.new_tag }}
@@ -317,7 +317,7 @@ jobs:
     name: Deploy to ECS on stagingv2
     continue-on-error: true
     needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v13
+    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v14
     with:
       environment: stagingv2
     secrets:
