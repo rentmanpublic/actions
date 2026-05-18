@@ -9,7 +9,6 @@ on:
     outputs:
       version:
         description: The new tag that was created
-        type: string
         value: ${{ steps.tag_version.outputs.new_tag }}
     inputs:
       deploy_confirmation:
