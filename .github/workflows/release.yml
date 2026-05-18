@@ -6,6 +6,11 @@ name: Release
 
 on:
   workflow_call:
+    outputs:
+      version:
+        description: The new tag that was created
+        type: string
+        value: ${{ steps.tag_version.outputs.new_tag }}
     inputs:
       deploy_confirmation:
         description: Outcome if user manually confirmed the start of the deploy script
@@ -259,64 +264,3 @@ jobs:
     secrets:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-
-  determine-ecr-image-name-stagingv2:
-    name: Determine ecr image name for stagingv2
-    needs: push-new-tag
-    outputs:
-      image_name: ${{ steps.image_name.outputs.image_name }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout actions repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-        with:
-          repository: rentmanpublic/actions
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: actions
-          ref: master
-      - name: Checkout to release repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-        with:
-          repository: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: target_repository_folder
-          ref: master
-      - name: Check which image name to use based on enviroment
-        id: image_name
-        run: actions/scripts/determine_image_name.sh
-        env:
-          ENVIRONMENT: stagingv2
-  docker-build-stagingv2:
-    name: Build image
-    needs: [tag, determine-ecr-image-name-stagingv2]
-    uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v14
-    with:
-      image_name: ${{ needs.determine-ecr-image-name-stagingv2.outputs.image_name }}
-      image_tag: latest ${{ needs.tag.outputs.new_tag }}
-      version: ${{ needs.tag.outputs.new_tag }}
-      dockerfile: ${{ inputs.dockerfile }}
-      platforms: amd64
-      push_images: 1
-      ref: ${{ needs.tag.outputs.new_tag }}
-      translations_client: ${{ inputs.translations_client }}
-      translations_directory: ${{ inputs.translations_directory }}
-      oauth_enabled: ${{ inputs.oauth_enabled }}
-    secrets:
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_ACCESS_KEY_ID }}
-      TRANSLATIONS_SECRET: ${{ secrets.RENTMAN_TRANSLATION_SERVER_SECRET }}
-      OAUTH_PRIVATE_KEY: ${{ secrets.OAUTH_PRIVATE_KEY }}
-      OAUTH_PUBLIC_KEY: ${{ secrets.OAUTH_PUBLIC_KEY }}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
-      NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
-  deploy-stagingv2:
-    name: Deploy to ECS on stagingv2
-    needs: docker-build
-    uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v14
-    with:
-      environment: stagingv2
-    secrets:
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGING_AWS_SECRET_ACCESS_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.STAGING_ACCESS_KEY_ID }}
