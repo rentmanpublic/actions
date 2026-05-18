@@ -9,7 +9,7 @@ on:
     outputs:
       version:
         description: The new tag that was created
-        value: ${{ steps.tag_version.outputs.new_tag }}
+        value: ${{ jobs.tag.outputs.new_tag }}
     inputs:
       deploy_confirmation:
         description: Outcome if user manually confirmed the start of the deploy script
