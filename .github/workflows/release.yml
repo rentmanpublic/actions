@@ -262,7 +262,6 @@ jobs:
 
   determine-ecr-image-name-stagingv2:
     name: Determine ecr image name for stagingv2
-    continue-on-error: true
     needs: push-new-tag
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
@@ -289,7 +288,6 @@ jobs:
           ENVIRONMENT: stagingv2
   docker-build-stagingv2:
     name: Build image
-    continue-on-error: true
     needs: [tag, determine-ecr-image-name-stagingv2]
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v14
     with:
@@ -315,7 +313,6 @@ jobs:
 
   deploy-stagingv2:
     name: Deploy to ECS on stagingv2
-    continue-on-error: true
     needs: docker-build
     uses: rentmanpublic/actions/.github/workflows/ecs-redeploy-service.yml@v14
     with:
