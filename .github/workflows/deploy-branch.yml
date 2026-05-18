@@ -69,7 +69,7 @@ jobs:
     steps:
       - name: Only allow staging and production
         run: |
-          if [[ "${{ inputs.environment }}" == "staging" || "${{ inputs.environment }}" == "production" ]]; then
+          if [[ "${{ inputs.environment }}" == "stagingv2" || "${{ inputs.environment }}" == "staging" || "${{ inputs.environment }}" == "production" ]]; then
           echo "Running workflow with environment: ${{ inputs.environment }}."
           else
           echo "Invalid environment. Only 'staging' or 'production' are allowed."
