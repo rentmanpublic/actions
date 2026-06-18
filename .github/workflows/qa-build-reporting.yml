@@ -33,7 +33,7 @@ jobs:
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
           STAGE: ${{inputs.stage}}
         run: |
-          if [[ "$STAGE" != @(building|built|failed) ]]; then
+          if [[ "$STAGE" != @(building|built|failed|prepared) ]]; then
             echo "Invalid build stage"
             exit 1
           fi
