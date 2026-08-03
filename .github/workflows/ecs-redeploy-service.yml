@@ -1,3 +1,10 @@
+# This workflow performs a force redeplyment on a service, with the current task definition.
+# Do not use this workflow directly inside a repository.
+# use the following instead, which call this one inside them.
+# - release.yml
+# - deploy-branch.yml
+# - deploy-version.yml
+# - redeploy-latest-image.yml
 name: Redeploy ECS service
 on:
   workflow_call:
