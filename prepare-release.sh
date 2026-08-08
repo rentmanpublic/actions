@@ -10,7 +10,7 @@ if [[ -z "$version" ]]; then
 fi
 
 # Update version referenced in all workflows
-sed -E -i "s/(rentmanpublic\/.*@v)[0-9]+/\1$version/g" .github/workflows/*
+sed -E -i '' "s/(rentmanpublic\/.*@v)[0-9]+/\1$version/g" .github/workflows/*
 
 git add .github/workflows/*
 git commit -m "Prepare version $version"
