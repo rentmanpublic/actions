@@ -80,7 +80,7 @@ for region_name in ${regions}; do
   fi
 
   if [[ "$service_tag" != "null" ]]; then
-    service_names_found=()
+    service_names_found=""
     echo "Getting Service name for service tag: $service_tag"
     service_names=$(aws resourcegroupstaggingapi get-resources \
       --region "$region_name" \
@@ -97,12 +97,12 @@ for region_name in ${regions}; do
     for service in ${service_names}; do
         # we do some sort of glob matching in this if statement, this relies on the long ARN format
         if [[ "$service" == *"service/$cluster_name_from_aws"* ]]; then
-            service_names_found+=("$(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')")
+            service_names_found+=" $(echo "$service" | awk -F'/' '{print $NF}' | sed 's/[",]//g')"
         fi
     done
 
     # Handle case when no output is returned
-    if [[ -z "${service_names_found[*]}" ]]; then
+    if [[ -z "$service_names_found" ]]; then
         echo "No service found with the tag: $service_tag"
         exit 1
     fi
