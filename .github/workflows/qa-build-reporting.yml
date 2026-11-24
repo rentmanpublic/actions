@@ -32,6 +32,10 @@ jobs:
           GITHUB_ACTION_PAYLOAD: ${{inputs.github_action_payload}}
           BUILD_REPORTING_SECRET: ${{secrets.build_reporting_secret}}
           STAGE: ${{inputs.stage}}
+          # StagingV2 keeps its own build registry. Both toolsendpoints share BUILD_REPORTING_SECRET, so the same
+          # payload (secret included) is posted to each.
+          STAGINGV2_TOOLS_ENDPOINT: https://tools.namtner.net
+          TOOLS_ENDPOINT: https://tools.rentman.net
         run: |
           if [[ "$STAGE" != @(building|built|failed|prepared) ]]; then
             echo "Invalid build stage"
@@ -39,7 +43,11 @@ jobs:
           fi
           echo "$GITHUB_ACTION_PAYLOAD" > payload.json
           jq ".secret=\"${BUILD_REPORTING_SECRET}\"" payload.json > processed.json
-          curl -X POST "https://tools.rentman.net/buildreporting.php?rmaction=$STAGE" -H 'Content-Type: application/json' --data-binary "@processed.json"
+          curl -X POST "${TOOLS_ENDPOINT}/buildreporting.php?rmaction=$STAGE" -H 'Content-Type: application/json' --data-binary "@processed.json"
+          # Report the same stage to StagingV2 too. Best effort: a StagingV2 outage must never fail a build.
+          curl -X POST "${STAGINGV2_TOOLS_ENDPOINT}/buildreporting.php?rmaction=$STAGE" -H 'Content-Type: application/json' --data-binary "@processed.json" \
+            --silent --show-error --fail --connect-timeout 5 --max-time 15 \
+            || echo "::warning::Could not report stage ${STAGE} to StagingV2 (${STAGINGV2_TOOLS_ENDPOINT}), continuing"
           event_type="$(jq -r '.event_name' processed.json)"
           if [ "$event_type" = "pull_request" ]; then
              sha="$(jq -r '.event.pull_request.head.sha' processed.json)"
