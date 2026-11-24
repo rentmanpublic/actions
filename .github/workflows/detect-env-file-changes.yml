@@ -13,20 +13,34 @@ jobs:
   detect-env-file-changes:
     name: Detect env file changes
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     permissions:
       pull-requests: write
       contents: read
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
-
+      # Reads the file list of the pull request from the API, so no checkout or git history is needed. The API lists
+      # at most 3000 files. Outside a pull request there is nothing to comment on, so the check is skipped.
       - name: Get changed files
         id: changed-files
-        uses: step-security/changed-files@2e07db73e5ccdb319b9a6c7766bd46d39d304bad # v47.0.5
-        with:
-          files: '**/*.env'
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Added, modified, renamed and deleted files, and the old path of a renamed file.
+          files=$(gh api --paginate "repos/$REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[] | .filename, .previous_filename // empty')
+          env_files=$(grep -E '\.env$' <<< "$files" || true)
+          if [ -n "$env_files" ]; then
+            echo "Changed env files:"
+            echo "$env_files"
+            echo 'any_changed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'No env files changed'
+            echo 'any_changed=false' >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Comment on PR if .env files are changed
         if: steps.changed-files.outputs.any_changed == 'true'
