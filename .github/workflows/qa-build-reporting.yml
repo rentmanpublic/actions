@@ -23,6 +23,7 @@ jobs:
 
   qa-build-register-status:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       sha: ${{steps.register.outputs.sha}}
     steps:
