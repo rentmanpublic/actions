@@ -86,8 +86,8 @@ jobs:
       - id: early_exit
         name: Checking chosen cluster and branch
         run: |
-          if [ ${{ inputs.environment }} == "production" ] && [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            echo "Deploying to production can only be done from master branch"
+          if [ ${{ inputs.environment }} == "production" ] && [ "${{ github.ref }}" != "refs/heads/${{ github.event.repository.default_branch }}" ]; then
+            echo "Deploying to production can only be done from the default branch ('${{ github.event.repository.default_branch }}')"
             exit 1
           fi
 
