@@ -65,7 +65,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ensure-master-branch:
+  ensure-default-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     outputs:
@@ -73,10 +73,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: early
-        name: Checking if current branch is master
+        name: Checking if current branch is the default branch
         run: |
-          if [ "${{ github.ref }}" != "refs/heads/master" ]; then
-            echo "Error this can only run on master branch"
+          if [ "${{ github.ref }}" != "refs/heads/${{ github.event.repository.default_branch }}" ]; then
+            echo "Error this can only run on the default branch ('${{ github.event.repository.default_branch }}')"
             exit 1
           fi
           echo "status=success" >> $GITHUB_OUTPUT
@@ -94,7 +94,7 @@ jobs:
           fi
   determine-ecr-image-name:
     name: Determine ecr image name based on environment
-    needs: [check-environment, ensure-master-branch]
+    needs: [check-environment, ensure-default-branch]
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
     runs-on: ubuntu-latest
@@ -112,7 +112,7 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ steps.github-token.outputs.token || secrets.GITHUB_TOKEN }}
           path: target_repository_folder
-          ref: master
+          ref: ${{ github.event.repository.default_branch }}
       - id: image_name
         name: Check which image name to use based on enviroment
         run: actions/scripts/determine_image_name.sh
@@ -123,7 +123,7 @@ jobs:
     name: Build image
     uses: rentmanpublic/actions/.github/workflows/ecr-build-and-push.yml@v14.3
     needs: determine-ecr-image-name
-    if: needs.ensure-master-branch.outputs.status == 'success'
+    if: needs.ensure-default-branch.outputs.status == 'success'
     with:
       image_name: ${{ needs.determine-ecr-image-name.outputs.image_name }}
       image_tag: latest ${{ inputs.target_version  }}

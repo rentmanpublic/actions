@@ -1,6 +1,6 @@
 name: Release
 
-# This workflow builds, and deploys the master branch and tags it in git (this is used for a production release)
+# This workflow builds, and deploys the default branch and tags it in git (this is used for a production release)
 # After that the image is build and pushed to ECR (tagged as latest and with the new git tag as a version)
 # And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
@@ -44,8 +44,8 @@ on:
         required: false
         type: string
         default: ''
-      # When branch protection is enabled on master in a repository we can add the Rentman CI
-      # bot as an exception where only the bot is allowed to push to master. We use this flag
+      # When branch protection is enabled on the default branch in a repository we can add the Rentman CI
+      # bot as an exception where only the bot is allowed to push to the default branch. We use this flag
       # to indicate that we should use the bots authentication token to push.
       is_branch_protected:
         description: Set this to true if authentication is required
@@ -116,18 +116,18 @@ jobs:
           exit 1
           fi
 
-  # we need to ensure we are on master here manually because workflow_call events can't filter on which branch
-  # they are called
-  ensure-master-branch:
+  # we need to ensure we are on the default branch here manually because workflow_call events can't filter on which
+  # branch they are called
+  ensure-default-branch:
     name: Check current branch
     if: ${{ inputs.deploy_confirmation == 'DEPLOY' || inputs.deploy_confirmation == 'YOLO' }}
     runs-on: ubuntu-latest
     steps:
       - id: early
-        name: Checking if current branch is master
+        name: Checking if current branch is the default branch
         run: |
-          if [ "${{ github.ref }}" != "refs/heads/master" ] && [ "${{ inputs.environment }}" != "staging" ]; then
-            echo "Error this can only run on master branch and deploy to a non-staging cluster"
+          if [ "${{ github.ref }}" != "refs/heads/${{ github.event.repository.default_branch }}" ] && [ "${{ inputs.environment }}" != "staging" ]; then
+            echo "Error this can only run on the default branch ('${{ github.event.repository.default_branch }}') and deploy to a non-staging cluster"
           exit 1;
           fi
 
@@ -143,7 +143,7 @@ jobs:
           fi
   tag:
     name: Generating new GitHub tag
-    needs: [ensure-master-branch, ensure-app-ci-key, check-environment]
+    needs: [ensure-default-branch, ensure-app-ci-key, check-environment]
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
     runs-on: ubuntu-latest
@@ -223,7 +223,7 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           path: target_repository_folder
-          ref: master
+          ref: ${{ github.event.repository.default_branch }}
       - name: Check which image name to use based on enviroment
         id: image_name
         run: actions/scripts/determine_image_name.sh

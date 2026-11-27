@@ -11,9 +11,9 @@ You can find an example of that below.
 
 The following workflows are available in this repository:
 
-#### Deploy master
+#### Release
 
-This workflow builds, and deploys the master branch and tags it in git (this is used for a production release)
+This workflow builds, and deploys the default branch of the repository (master or main) and tags it in git (this is used for a production release)
 After that the image is build and pushed to ECR (tagged as latest and with the new git tag as a version)
 And the ecs instance is redeployed to all specified regions and clusters in the config.json file in the repository deployments/workflows folder
 
